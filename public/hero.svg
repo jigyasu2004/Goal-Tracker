@@ -1,0 +1,13 @@
+<svg width="600" height="600" viewBox="0 0 600 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="600" rx="24" fill="url(#paint0_linear)"/>
+  <circle cx="300" cy="250" r="100" fill="white" fill-opacity="0.2"/>
+  <path d="M300 180L320 230H370L330 260L345 310L300 280L255 310L270 260L230 230H280L300 180Z" fill="#FCD34D"/>
+  <path d="M150 450H450V460H150V450ZM150 400H450V410H150V400ZM150 350H450V360H150V350Z" fill="white" fill-opacity="0.5"/>
+  <text x="300" y="520" font-family="Arial" font-size="24" fill="white" text-anchor="middle">Achieve Your Goals</text>
+  <defs>
+    <linearGradient id="paint0_linear" x1="0" y1="0" x2="600" y2="600" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#9333EA"/>
+    </linearGradient>
+  </defs>
+</svg>

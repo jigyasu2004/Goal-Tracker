@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  username String @unique
+  password String
+  goals    Goal[]
+  notes    Note[]
+}
+
+model Goal {
+  id            String           @id @default(uuid())
+  title         String
+  description   String?
+  type          String
+  targetDate    DateTime?
+  startDate     DateTime         @default(now())
+  endDate       DateTime?
+  recurringDays String?          // JSON string of days [0,1,2...]
+  status        String           @default("pending")
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  userId        String
+  user          User             @relation(fields: [userId], references: [id])
+  notes         Note[]
+  completions   GoalCompletion[]
+}
+
+model Note {
+  id        String    @id @default(uuid())
+  title     String?
+  content   String
+  noteDate  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  goalId    String?
+  goal      Goal?     @relation(fields: [goalId], references: [id])
+}
+
+model GoalCompletion {
+  id        String   @id @default(cuid())
+  goalId    String
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  date      DateTime
+  completed Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([goalId, date])
+}
