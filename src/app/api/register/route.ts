@@ -19,7 +19,7 @@ export async function POST(req: Request) {
                     { username },
                     { email }
                 ]
-            } as any,
+            } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         });
 
         if (existingUser) {
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
                 email,
                 password: hashedPassword,
                 timezone: timezone || "UTC",
-            } as any,
+            } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         });
 
         // Send welcome email
