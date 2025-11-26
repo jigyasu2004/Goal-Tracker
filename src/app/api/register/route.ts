@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     try {
-        const { username, email, password } = await req.json();
+        const { username, email, password, timezone } = await req.json();
 
         if (!username || !email || !password) {
             return NextResponse.json(
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
                     { username },
                     { email }
                 ]
-            },
+            } as any,
         });
 
         if (existingUser) {
@@ -36,7 +36,8 @@ export async function POST(req: Request) {
                 username,
                 email,
                 password: hashedPassword,
-            },
+                timezone: timezone || "UTC",
+            } as any,
         });
 
         // Send welcome email

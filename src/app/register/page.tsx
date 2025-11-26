@@ -17,12 +17,14 @@ export default function RegisterPage() {
         setLoading(true);
         setError("");
 
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
         const res = await fetch("/api/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ username, email, password }),
+            body: JSON.stringify({ username, email, password, timezone }),
         });
 
         setLoading(false);
