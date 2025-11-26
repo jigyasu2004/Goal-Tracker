@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Calendar from "@/components/Calendar";
 import RightPanel from "@/components/RightPanel";
-import { getDay, isWithinInterval, format } from "date-fns";
+import { getDay, format } from "date-fns";
 
 interface GoalCompletion {
     id: string;
@@ -61,18 +61,63 @@ export default function DashboardPage() {
     };
 
     const toggleGoalStatus = async (goalId: string, currentStatus: string, date?: Date) => {
-        const res = await fetch("/api/goals", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                id: goalId,
-                status: currentStatus,
-                date: date ? date.toISOString() : undefined
-            }),
-        });
+        // Optimistic Update
+        const previousGoals = [...goals];
+        setGoals(currentGoals =>
+            currentGoals.map(g => {
+                if (g.id !== goalId) return g;
 
-        if (res.ok) {
-            fetchGoals();
+                // If toggling a specific date (daily completion)
+                if (date) {
+                    const dateStr = date.toISOString();
+                    const completions = g.completions || [];
+                    const existingIndex = completions.findIndex(c => c.date === dateStr);
+
+                    let newCompletions;
+                    if (existingIndex >= 0) {
+                        // Toggle existing
+                        newCompletions = [...completions];
+                        newCompletions[existingIndex] = {
+                            ...newCompletions[existingIndex],
+                            completed: currentStatus === "completed"
+                        };
+                    } else {
+                        // Add new
+                        newCompletions = [...completions, {
+                            id: "temp-" + Date.now(),
+                            date: dateStr,
+                            completed: currentStatus === "completed"
+                        }];
+                    }
+                    return { ...g, completions: newCompletions };
+                }
+
+                // If toggling main status
+                return { ...g, status: currentStatus };
+            })
+        );
+
+        try {
+            const res = await fetch("/api/goals", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: goalId,
+                    status: currentStatus,
+                    date: date ? date.toISOString() : undefined
+                }),
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to update");
+            }
+
+            // Optional: Fetch to ensure sync, but optimistic update makes it feel instant
+            // fetchGoals(); 
+        } catch (error) {
+            console.error("Error updating goal:", error);
+            // Revert on error
+            setGoals(previousGoals);
         }
     };
 

@@ -7,11 +7,7 @@ interface Goal {
     title: string;
 }
 
-interface Note {
-    id: string;
-    content: string;
-    goalId: string | null;
-}
+
 
 export default function Notepad() {
     const [content, setContent] = useState("");
@@ -26,6 +22,24 @@ export default function Notepad() {
     }, []);
 
     useEffect(() => {
+        const fetchNote = async () => {
+            const url = selectedGoalId
+                ? `/api/notes?goalId=${selectedGoalId}`
+                : `/api/notes`;
+
+            const res = await fetch(url);
+            if (res.ok) {
+                const data = await res.json();
+                const note = data[0];
+                if (note) {
+                    setContent(note.content);
+                    setCurrentNoteId(note.id);
+                } else {
+                    setContent("");
+                    setCurrentNoteId(null);
+                }
+            }
+        };
         fetchNote();
     }, [selectedGoalId]);
 
@@ -37,7 +51,8 @@ export default function Notepad() {
         }
     };
 
-    const fetchNote = async () => {
+    // Helper to refresh note after save
+    const refreshNote = async () => {
         const url = selectedGoalId
             ? `/api/notes?goalId=${selectedGoalId}`
             : `/api/notes`;
@@ -49,9 +64,6 @@ export default function Notepad() {
             if (note) {
                 setContent(note.content);
                 setCurrentNoteId(note.id);
-            } else {
-                setContent("");
-                setCurrentNoteId(null);
             }
         }
     };
@@ -73,7 +85,7 @@ export default function Notepad() {
         });
 
         if (!currentNoteId) {
-            await fetchNote();
+            await refreshNote();
         }
         setSaving(false);
         setSaved(true);

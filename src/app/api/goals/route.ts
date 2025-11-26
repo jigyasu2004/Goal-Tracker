@@ -26,7 +26,7 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json(goals);
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Error fetching goals" }, { status: 500 });
     }
 }
@@ -98,18 +98,123 @@ export async function PUT(req: Request) {
                     },
                 });
             }
-
-            return NextResponse.json({ success: true });
+        } else {
+            // Otherwise update main goal status (legacy/simple goals)
+            await prisma.goal.update({
+                where: { id },
+                data: { status },
+            });
         }
 
-        // Otherwise update main goal status (legacy/simple goals)
-        const goal = await prisma.goal.update({
-            where: { id },
-            data: { status },
+        // --- INSTANT REWARD CHECK ---
+        const userId = session.user.id;
+        const checkDate = date ? new Date(date) : new Date();
+
+        const start = new Date(checkDate); start.setHours(0, 0, 0, 0);
+        const end = new Date(checkDate); end.setHours(23, 59, 59, 999);
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { goals: true }
         });
 
-        return NextResponse.json(goal);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (user && (user as any).email) {
+            const today = new Date();
+
+            // Reset count if last reward was not today
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let currentCount = (user as any).rewardEmailCount;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const lastReward = new Date((user as any).lastRewardDate);
+            const lastRewardIsToday = lastReward.getDate() === today.getDate() &&
+                lastReward.getMonth() === today.getMonth() &&
+                lastReward.getFullYear() === today.getFullYear();
+
+            if (!lastRewardIsToday) {
+                currentCount = 0;
+            }
+
+            if (currentCount < 2) {
+                // Filter goals relevant for checkDate
+                const goalsForDate = user.goals.filter(goal => {
+                    if (goal.status === 'archived') return false;
+
+                    // Check if targetDate matches checkDate
+                    if (goal.targetDate) {
+                        const target = new Date(goal.targetDate);
+                        return target.getDate() === checkDate.getDate() &&
+                            target.getMonth() === checkDate.getMonth() &&
+                            target.getFullYear() === checkDate.getFullYear();
+                    }
+
+                    // Check recurring days
+                    if (goal.recurringDays) {
+                        try {
+                            const days = JSON.parse(goal.recurringDays);
+                            const dayName = checkDate.toLocaleDateString('en-US', { weekday: 'long' });
+                            return days.includes(dayName);
+                        } catch {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                });
+
+                let allComplete = true;
+
+                for (const g of goalsForDate) {
+                    const completion = await prisma.goalCompletion.findFirst({
+                        where: {
+                            goalId: g.id,
+                            date: { gte: start, lte: end },
+                            completed: true
+                        }
+                    });
+                    const isGloballyComplete = g.status === 'completed';
+                    if (!completion && !isGloballyComplete) {
+                        allComplete = false;
+                        break;
+                    }
+                }
+
+                if (allComplete && goalsForDate.length > 0) {
+                    // Send Email
+                    const { sendEmail } = await import("@/lib/email");
+                    const dashboardUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dashboard`;
+
+                    await sendEmail(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (user as any).email,
+                        `Reward Unlocked: All goals completed for ${checkDate.toLocaleDateString()}!`,
+                        `
+                         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h2>Great Job, ${user.username}!</h2>
+                            <p>You have completed all your goals for <strong>${checkDate.toLocaleDateString()}</strong>.</p>
+                            <p>Keep up the momentum!</p>
+                            <p>
+                              <a href="${dashboardUrl}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Dashboard</a>
+                            </p>
+                         </div>
+                         `
+                    );
+
+                    // Update count
+                    await prisma.user.update({
+                        where: { id: userId },
+                        data: {
+                            rewardEmailCount: currentCount + 1,
+                            lastRewardDate: new Date()
+                        } as any // eslint-disable-line @typescript-eslint/no-explicit-any
+                    });
+                }
+            }
+        }
+
+        return NextResponse.json({ success: true });
     } catch (error) {
+        console.error(error);
         return NextResponse.json({ error: "Error updating goal" }, { status: 500 });
     }
 }
@@ -132,7 +237,7 @@ export async function DELETE(req: Request) {
         });
 
         return NextResponse.json({ message: "Deleted" });
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Error deleting goal" }, { status: 500 });
     }
 }

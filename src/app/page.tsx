@@ -1,7 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useSession, signOut } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, Suspense } from "react";
 
-export default function Home() {
+function HomeContent() {
+    const { status } = useSession();
+    const searchParams = useSearchParams();
+    const deleted = searchParams.get("deleted");
+
+    useEffect(() => {
+        if (deleted === "true") {
+            signOut({ callbackUrl: "/" });
+        }
+    }, [deleted]);
+
     return (
         <main className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700">
             <div className="container mx-auto px-4 py-16">
@@ -15,18 +30,29 @@ export default function Home() {
                             Track daily, short-term, and long-term goals with our intuitive calendar interface. Stay organized and motivated!
                         </p>
                         <div className="flex flex-wrap gap-4 pt-4">
-                            <Link
-                                href="/register"
-                                className="px-8 py-4 bg-white text-purple-600 rounded-full text-lg font-bold hover:bg-yellow-300 hover:text-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                            >
-                                Get Started Free
-                            </Link>
-                            <Link
-                                href="/login"
-                                className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full text-lg font-bold hover:bg-white hover:text-purple-600 transition-all duration-300"
-                            >
-                                Sign In
-                            </Link>
+                            {status === "authenticated" ? (
+                                <Link
+                                    href="/dashboard"
+                                    className="px-8 py-4 bg-white text-purple-600 rounded-full text-lg font-bold hover:bg-yellow-300 hover:text-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                                >
+                                    Go to Dashboard
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/register"
+                                        className="px-8 py-4 bg-white text-purple-600 rounded-full text-lg font-bold hover:bg-yellow-300 hover:text-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                                    >
+                                        Get Started Free
+                                    </Link>
+                                    <Link
+                                        href="/login"
+                                        className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full text-lg font-bold hover:bg-white hover:text-purple-600 transition-all duration-300"
+                                    >
+                                        Sign In
+                                    </Link>
+                                </>
+                            )}
                         </div>
 
                         {/* Features */}
@@ -65,5 +91,13 @@ export default function Home() {
                 </div>
             </div>
         </main>
+    );
+}
+
+export default function Home() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <HomeContent />
+        </Suspense>
     );
 }

@@ -52,10 +52,35 @@ export default function RightPanel({
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
+        const fetchNotes = async () => {
+            let url = "/api/notes";
+            const params = new URLSearchParams();
+
+            if (noteType === "date" && selectedDate) {
+                params.append("noteDate", selectedDate.toISOString());
+            } else if (noteType === "goal" && selectedGoalId) {
+                params.append("goalId", selectedGoalId);
+            }
+
+            if (params.toString()) {
+                url += `?${params.toString()}`;
+            }
+
+            const res = await fetch(url);
+            if (res.ok) {
+                const data = await res.json();
+                if (noteType === "general") {
+                    setNotes(data.filter((n: Note) => !n.goalId && !n.noteDate));
+                } else {
+                    setNotes(data);
+                }
+            }
+        };
         fetchNotes();
     }, [selectedDate, noteType, selectedGoalId]);
 
-    const fetchNotes = async () => {
+    // Helper for manual refresh
+    const refreshNotes = async () => {
         let url = "/api/notes";
         const params = new URLSearchParams();
 
@@ -85,6 +110,7 @@ export default function RightPanel({
 
         setSaving(true);
         const method = editingNoteId ? "PUT" : "POST";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const body: any = {
             title: noteTitle || null,
             content: noteContent,
@@ -110,7 +136,7 @@ export default function RightPanel({
         setNoteTitle("");
         setNoteContent("");
         setEditingNoteId(null);
-        fetchNotes();
+        refreshNotes();
     };
 
     const editNote = (note: Note) => {
@@ -121,7 +147,7 @@ export default function RightPanel({
 
     const deleteNote = async (id: string) => {
         await fetch(`/api/notes?id=${id}`, { method: "DELETE" });
-        fetchNotes();
+        refreshNotes();
     };
 
     if (!selectedDate) {
@@ -172,7 +198,7 @@ export default function RightPanel({
                         <GoalForm selectedDate={selectedDate} onGoalAdded={onGoalAdded} />
 
                         <div>
-                            <h3 className="text-xs font-semibold text-gray-700 mb-2">Today's Goals</h3>
+                            <h3 className="text-xs font-semibold text-gray-700 mb-2">Today&apos;s Goals</h3>
                             {goals.length === 0 ? (
                                 <p className="text-xs text-gray-500 text-center py-4">No goals for this date</p>
                             ) : (

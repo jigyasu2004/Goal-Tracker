@@ -48,6 +48,7 @@ export default function GoalForm({ selectedDate, onGoalAdded }: GoalFormProps) {
 
         setLoading(true);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const goalData: any = {
             title,
             type,

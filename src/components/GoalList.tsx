@@ -18,10 +18,18 @@ export default function GoalList({ title, type }: GoalListProps) {
     const [newGoal, setNewGoal] = useState("");
 
     useEffect(() => {
+        const fetchGoals = async () => {
+            const res = await fetch(`/api/goals?type=${type}`);
+            if (res.ok) {
+                const data = await res.json();
+                setGoals(data);
+            }
+        };
         fetchGoals();
-    }, []);
+    }, [type]);
 
-    const fetchGoals = async () => {
+    // Re-expose fetchGoals for other functions if needed, or duplicate logic safely
+    const refreshGoals = async () => {
         const res = await fetch(`/api/goals?type=${type}`);
         if (res.ok) {
             const data = await res.json();
@@ -41,7 +49,7 @@ export default function GoalList({ title, type }: GoalListProps) {
 
         if (res.ok) {
             setNewGoal("");
-            fetchGoals();
+            refreshGoals();
         }
     };
 
@@ -54,7 +62,7 @@ export default function GoalList({ title, type }: GoalListProps) {
         });
 
         if (res.ok) {
-            fetchGoals();
+            refreshGoals();
         }
     };
 
@@ -64,7 +72,7 @@ export default function GoalList({ title, type }: GoalListProps) {
         });
 
         if (res.ok) {
-            fetchGoals();
+            refreshGoals();
         }
     };
 

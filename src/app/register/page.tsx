@@ -7,6 +7,7 @@ import Link from "next/link";
 export default function RegisterPage() {
     const router = useRouter();
     const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -21,7 +22,7 @@ export default function RegisterPage() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ username, email, password }),
         });
 
         setLoading(false);
@@ -59,6 +60,20 @@ export default function RegisterPage() {
                                 onChange={(e) => setUsername(e.target.value)}
                                 className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-gray-800 transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
                                 placeholder="Choose a username"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-gray-700">
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-gray-800 transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                                placeholder="Enter your email"
                                 required
                             />
                         </div>
