@@ -74,18 +74,19 @@ export default function GoalForm({ selectedDate, onGoalAdded, onCancel }: GoalFo
     };
 
     return (
-        <form onSubmit={handleSubmit} className="rounded-3xl border border-[#dbe5d7] bg-[#f8faf6] p-4 sm:p-5">
+        <form onSubmit={handleSubmit} className="relative overflow-hidden rounded-3xl border border-[#8e9ee5]/15 bg-[#090b1a]/85 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.04)] sm:p-5">
+            <div className="pointer-events-none absolute -right-14 -top-16 h-36 w-36 rounded-full bg-[#704fd1]/15 blur-3xl" />
             <div className="mb-4 flex items-center justify-between">
-                <div><h3 className="font-display text-lg font-bold text-[#1c462e]">Add to your plan</h3><p className="text-xs text-slate-500">Make the action clear and easy to start.</p></div>
-                {onCancel && <button type="button" onClick={onCancel} aria-label="Close form" className="rounded-full p-2 text-slate-400 transition hover:bg-white hover:text-slate-700"><X size={18} /></button>}
+                <div className="relative"><span className="eyebrow">New sequence</span><h3 className="mt-1 font-display text-lg font-bold text-white">Initialize an action</h3><p className="text-xs text-[#68718d]">Define a signal that is clear and easy to launch.</p></div>
+                {onCancel && <button type="button" onClick={onCancel} aria-label="Close form" className="relative rounded-xl border border-white/[0.07] p-2 text-[#67708a] transition hover:bg-white/[0.05] hover:text-white"><X size={18} /></button>}
             </div>
 
             <div className="mb-4 grid grid-cols-3 gap-2">
                 {GOAL_TYPES.map(({ value, label, helper, icon: Icon }) => (
-                    <button key={value} type="button" onClick={() => setType(value)} className={`rounded-2xl border p-2.5 text-left transition ${type === value ? "border-[#3a6c48] bg-white shadow-sm" : "border-transparent bg-[#edf2ea] hover:bg-white"}`}>
-                        <Icon size={16} className={type === value ? "text-[#2e6642]" : "text-slate-400"} />
-                        <span className="mt-2 block text-xs font-bold text-slate-700">{label}</span>
-                        <span className="hidden text-[9px] text-slate-400 sm:block">{helper}</span>
+                    <button key={value} type="button" onClick={() => setType(value)} className={`rounded-2xl border p-2.5 text-left transition ${type === value ? "border-[#62e6df]/35 bg-gradient-to-br from-[#15616e]/30 to-[#533b91]/30 shadow-[0_0_24px_rgba(94,234,212,.08)]" : "border-white/[0.06] bg-white/[0.025] hover:border-[#8c7ef0]/25 hover:bg-white/[0.045]"}`}>
+                        <Icon size={16} className={type === value ? "text-[#79f4eb]" : "text-[#59627d]"} />
+                        <span className="mt-2 block text-xs font-bold text-[#dce3f5]">{label}</span>
+                        <span className="hidden text-[9px] text-[#5e6782] sm:block">{helper}</span>
                     </button>
                 ))}
             </div>
@@ -97,18 +98,18 @@ export default function GoalForm({ selectedDate, onGoalAdded, onCancel }: GoalFo
             <input id="goal-why" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="A short reminder for your future self" className="form-input" maxLength={240} />
 
             {isRecurring && (
-                <div className="mt-4 space-y-4 border-t border-[#dfe7dc] pt-4">
+                <div className="mt-4 space-y-4 border-t border-white/[0.07] pt-4">
                     <div>
-                        <div className="mb-2 flex items-center justify-between"><span className="form-label mb-0">Repeat on</span><button type="button" onClick={() => setSelectedDays(selectedDays.length === 7 ? [] : [0, 1, 2, 3, 4, 5, 6])} className="text-[10px] font-bold text-[#386749]">{selectedDays.length === 7 ? "Clear" : "Every day"}</button></div>
+                        <div className="mb-2 flex items-center justify-between"><span className="form-label mb-0">Repeat on</span><button type="button" onClick={() => setSelectedDays(selectedDays.length === 7 ? [] : [0, 1, 2, 3, 4, 5, 6])} className="text-[10px] font-bold text-[#70e8df]">{selectedDays.length === 7 ? "Clear" : "Every day"}</button></div>
                         <div className="grid grid-cols-7 gap-1.5">
-                            {DAYS_OF_WEEK.map((day, index) => <button key={index} type="button" aria-pressed={selectedDays.includes(day.value)} onClick={() => toggleDay(day.value)} className={`aspect-square rounded-full text-[11px] font-extrabold transition ${selectedDays.includes(day.value) ? "bg-[#245b3a] text-white shadow-sm" : "border border-[#d6e0d2] bg-white text-slate-500 hover:border-[#7f9c79]"}`}>{day.label}</button>)}
+                            {DAYS_OF_WEEK.map((day, index) => <button key={index} type="button" aria-pressed={selectedDays.includes(day.value)} onClick={() => toggleDay(day.value)} className={`aspect-square rounded-xl text-[11px] font-extrabold transition ${selectedDays.includes(day.value) ? "border border-[#5eead4]/25 bg-gradient-to-br from-[#16828c] to-[#5b45a1] text-white shadow-[0_0_16px_rgba(94,234,212,.14)]" : "border border-white/[0.07] bg-white/[0.025] text-[#69728c] hover:border-[#7a83aa]"}`}>{day.label}</button>)}
                         </div>
-                        <p className="mt-2 text-[10px] text-slate-400">No days selected means every day.</p>
+                        <p className="mt-2 text-[10px] text-[#545d77]">No nodes selected means every day.</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <label><span className="form-label"><CalendarDays size={12} /> Starts</span><input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="form-input text-xs" required /></label>
-                        <label><span className="form-label"><input type="checkbox" checked={hasEndDate} onChange={(event) => setHasEndDate(event.target.checked)} className="accent-[#285d3c]" /> End date</span><input type="date" min={startDate} value={endDate} onChange={(event) => setEndDate(event.target.value)} disabled={!hasEndDate} className="form-input text-xs disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400" /></label>
+                        <label><span className="form-label"><input type="checkbox" checked={hasEndDate} onChange={(event) => setHasEndDate(event.target.checked)} className="accent-[#5eead4]" /> End date</span><input type="date" min={startDate} value={endDate} onChange={(event) => setEndDate(event.target.value)} disabled={!hasEndDate} className="form-input text-xs disabled:cursor-not-allowed disabled:bg-white/[0.02] disabled:text-[#414960]" /></label>
                     </div>
                 </div>
             )}

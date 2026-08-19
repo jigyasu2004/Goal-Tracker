@@ -112,10 +112,10 @@ export default function DashboardPage() {
 
     if (status === "loading") {
         return (
-            <div className="flex h-screen items-center justify-center bg-[#f5f7f2]">
+            <div className="space-grid flex h-screen items-center justify-center">
                 <div className="text-center">
-                    <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-[#dce5d6] border-t-[#255c3b]" />
-                    <p className="text-sm font-semibold text-slate-600">Preparing your day…</p>
+                    <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-2 border-[#38405d] border-r-[#5eead4] border-t-[#a78bfa] shadow-[0_0_30px_rgba(94,234,212,.2)]" />
+                    <p className="text-sm font-semibold text-[#8992ad]">Synchronizing your orbit…</p>
                 </div>
             </div>
         );
@@ -127,18 +127,20 @@ export default function DashboardPage() {
     const greeting = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
 
     return (
-        <div className="min-h-screen bg-[#f5f7f2] text-slate-900">
+        <div className="space-grid min-h-screen overflow-hidden text-[#edf1ff]">
+            <div className="aurora-orb pointer-events-none fixed -left-40 top-20 h-80 w-80 rounded-full bg-[#4b3bcc]/15" />
+            <div className="aurora-orb aurora-orb-delayed pointer-events-none fixed -right-32 top-72 h-72 w-72 rounded-full bg-[#10bfc6]/10" />
             <Navbar />
-            <main className="mx-auto w-full max-w-[1500px] px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+            <main className="relative z-10 mx-auto w-full max-w-[1500px] px-4 pb-10 pt-7 sm:px-6 lg:px-8">
                 <section className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                     <div>
-                        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-[#6e806d]">
-                            <Sparkles size={14} /> Your daily compass
+                        <div className="eyebrow mb-2">
+                            <span className="status-dot" /> Mission control
                         </div>
-                        <h1 className="font-display text-3xl font-bold tracking-[-0.04em] text-[#173e2a] sm:text-4xl">
+                        <h1 className="gradient-text font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl">
                             Good {greeting}, {session.user.name?.split(" ")[0]}.
                         </h1>
-                        <p className="mt-2 max-w-2xl text-sm text-slate-500 sm:text-base">
+                        <p className="mt-2 max-w-2xl text-sm text-[#858eaa] sm:text-base">
                             {nextAction
                                 ? `Your next best move: ${nextAction.title}`
                                 : todayProgress.total > 0
@@ -152,36 +154,36 @@ export default function DashboardPage() {
                     </button>
                 </section>
 
-                {error && <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</div>}
+                {error && <div className="mb-5 rounded-2xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-sm text-amber-200">{error}</div>}
 
                 <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
                     <article className="metric-card metric-card-dark col-span-2 sm:col-span-1">
-                        <div className="metric-icon bg-white/10 text-[#d9efc8]"><Target size={18} /></div>
+                        <div className="metric-icon text-[#8afff5]"><Target size={18} /></div>
                         <span className="metric-label text-white/60">Today</span>
                         <div className="flex items-end gap-2"><strong>{todayProgress.percentage}%</strong><span>{todayProgress.completed}/{todayProgress.total} done</span></div>
-                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#b7e38d] transition-all" style={{ width: `${todayProgress.percentage}%` }} /></div>
+                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-[#5eead4] to-[#a78bfa] shadow-[0_0_14px_rgba(94,234,212,.8)] transition-all" style={{ width: `${todayProgress.percentage}%` }} /></div>
                     </article>
                     <article className="metric-card">
-                        <div className="metric-icon bg-[#fff1d7] text-[#a16016]"><Flame size={18} /></div>
+                        <div className="metric-icon text-[#f4a261]"><Flame size={18} /></div>
                         <span className="metric-label">Current streak</span>
                         <div className="flex items-end gap-2"><strong>{streak}</strong><span>{streak === 1 ? "day" : "days"}</span></div>
                         <p>Completed days in a row</p>
                     </article>
                     <article className="metric-card">
-                        <div className="metric-icon bg-[#e6edf9] text-[#385d93]"><Check size={18} /></div>
+                        <div className="metric-icon text-[#68d7ff]"><Check size={18} /></div>
                         <span className="metric-label">7-day consistency</span>
                         <div className="flex items-end gap-2"><strong>{consistency}%</strong><span>{weeklyCompleted}/{weeklyTotal}</span></div>
                         <div className="mt-3 flex items-end gap-1.5">
                             {week.map((day) => (
                                 <div key={day.date.toISOString()} className="flex flex-1 flex-col items-center gap-1">
-                                    <div className="flex h-7 w-full items-end rounded-sm bg-[#edf1eb]"><div className="w-full rounded-sm bg-[#7ea36f]" style={{ height: `${Math.max(day.percentage, day.total ? 14 : 3)}%` }} /></div>
-                                    <span className="text-[9px] font-bold text-slate-400">{day.label}</span>
+                                    <div className="flex h-7 w-full items-end rounded-sm bg-white/[0.05]"><div className="w-full rounded-sm bg-gradient-to-t from-[#5576dc] to-[#62e8df] shadow-[0_0_10px_rgba(94,234,212,.16)]" style={{ height: `${Math.max(day.percentage, day.total ? 14 : 3)}%` }} /></div>
+                                    <span className="text-[9px] font-bold text-[#5d6680]">{day.label}</span>
                                 </div>
                             ))}
                         </div>
                     </article>
                     <article className="metric-card">
-                        <div className="metric-icon bg-[#eee8f7] text-[#6e5596]"><Sparkles size={18} /></div>
+                        <div className="metric-icon text-[#b69cff]"><Sparkles size={18} /></div>
                         <span className="metric-label">Active goals</span>
                         <div className="flex items-end gap-2"><strong>{goals.filter((goal) => goal.status !== "archived").length}</strong><span>in motion</span></div>
                         <p>Small actions compound</p>
@@ -189,7 +191,7 @@ export default function DashboardPage() {
                 </section>
 
                 <section id="calendar" className="grid scroll-mt-24 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,.75fr)]">
-                    <div className="min-h-[610px] overflow-hidden rounded-[28px] border border-[#dfe6db] bg-white shadow-[0_18px_60px_rgba(38,67,48,0.07)]">
+                    <div className="glass-panel min-h-[610px] overflow-hidden rounded-[28px]">
                         <Calendar goals={goals} selectedDate={selectedDate} onDateClick={setSelectedDate} />
                     </div>
                     <div className="min-h-[610px]">
