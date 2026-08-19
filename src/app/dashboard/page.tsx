@@ -2,203 +2,207 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Check, Flame, RefreshCw, Sparkles, Target } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Calendar from "@/components/Calendar";
 import RightPanel from "@/components/RightPanel";
-import { getDay, format } from "date-fns";
-
-interface GoalCompletion {
-    id: string;
-    date: string;
-    completed: boolean;
-}
-
-interface Goal {
-    id: string;
-    title: string;
-    targetDate: string | null;
-    startDate: string;
-    endDate: string | null;
-    recurringDays: string | null;
-    status: string;
-    type: string;
-    completions?: GoalCompletion[];
-}
+import {
+    Goal,
+    getCurrentStreak,
+    getDayProgress,
+    getWeekSnapshot,
+    goalsForDate,
+    isGoalCompleteForDate,
+} from "@/lib/goal-utils";
 
 export default function DashboardPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const [goals, setGoals] = useState<Goal[]>([]);
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        if (status === "unauthenticated") {
-            router.push("/login");
-        }
+        if (status === "unauthenticated") router.push("/login");
     }, [status, router]);
 
-    useEffect(() => {
-        if (session) {
-            fetchGoals();
-        }
-    }, [session]);
-
-    const fetchGoals = async () => {
-        console.log("Fetching goals...");
+    const fetchGoals = useCallback(async () => {
+        setError("");
+        setIsRefreshing(true);
         try {
             const res = await fetch("/api/goals", { cache: "no-store" });
-            if (res.ok) {
-                const data = await res.json();
-                console.log("Fetched goals:", data.length);
-                setGoals(data);
-            } else {
-                console.error("Failed to fetch goals");
-            }
-        } catch (error) {
-            console.error("Error fetching goals:", error);
+            if (!res.ok) throw new Error("Failed to fetch goals");
+            setGoals(await res.json());
+        } catch (fetchError) {
+            console.error(fetchError);
+            setError("We could not refresh your goals. Check your connection and try again.");
+        } finally {
+            setIsRefreshing(false);
         }
-    };
+    }, []);
 
-    const toggleGoalStatus = async (goalId: string, currentStatus: string, date?: Date) => {
-        // Optimistic Update
-        const previousGoals = [...goals];
-        setGoals(currentGoals =>
-            currentGoals.map(g => {
-                if (g.id !== goalId) return g;
+    useEffect(() => {
+        if (session) fetchGoals();
+    }, [session, fetchGoals]);
 
-                // If toggling a specific date (daily completion)
-                if (date) {
-                    const dateStr = date.toISOString();
-                    const completions = g.completions || [];
-                    const existingIndex = completions.findIndex(c => c.date === dateStr);
+    const toggleGoalStatus = async (goalId: string, nextStatus: string, date?: Date) => {
+        const previousGoals = goals;
 
-                    let newCompletions;
-                    if (existingIndex >= 0) {
-                        // Toggle existing
-                        newCompletions = [...completions];
-                        newCompletions[existingIndex] = {
-                            ...newCompletions[existingIndex],
-                            completed: currentStatus === "completed"
-                        };
-                    } else {
-                        // Add new
-                        newCompletions = [...completions, {
-                            id: "temp-" + Date.now(),
-                            date: dateStr,
-                            completed: currentStatus === "completed"
-                        }];
-                    }
-                    return { ...g, completions: newCompletions };
-                }
+        setGoals((currentGoals) => currentGoals.map((goal) => {
+            if (goal.id !== goalId) return goal;
+            if (!date) return { ...goal, status: nextStatus };
 
-                // If toggling main status
-                return { ...g, status: currentStatus };
-            })
-        );
+            const completions = [...(goal.completions || [])];
+            const existingIndex = completions.findIndex(
+                (completion) => new Date(completion.date).toDateString() === date.toDateString(),
+            );
+
+            if (existingIndex >= 0) {
+                completions[existingIndex] = { ...completions[existingIndex], completed: nextStatus === "completed" };
+            } else {
+                completions.push({ id: `temp-${Date.now()}`, date: date.toISOString(), completed: nextStatus === "completed" });
+            }
+
+            return { ...goal, completions };
+        }));
 
         try {
+            const dateKey = date
+                ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+                : undefined;
             const res = await fetch("/api/goals", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: goalId,
-                    status: currentStatus,
-                    date: date ? date.toISOString() : undefined
-                }),
+                body: JSON.stringify({ id: goalId, status: nextStatus, date: dateKey }),
             });
-
-            if (!res.ok) {
-                throw new Error("Failed to update");
-            }
-
-            // Optional: Fetch to ensure sync, but optimistic update makes it feel instant
-            // fetchGoals(); 
-        } catch (error) {
-            console.error("Error updating goal:", error);
-            // Revert on error
+            if (!res.ok) throw new Error("Failed to update goal");
+        } catch (updateError) {
+            console.error(updateError);
             setGoals(previousGoals);
+            setError("That check-in did not save. Your previous state was restored.");
         }
     };
 
     const deleteGoal = async (goalId: string) => {
-        await fetch("/api/goals", {
+        const previousGoals = goals;
+        setGoals((current) => current.filter((goal) => goal.id !== goalId));
+
+        const res = await fetch("/api/goals", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id: goalId }),
         });
-        fetchGoals();
+
+        if (!res.ok) {
+            setGoals(previousGoals);
+            setError("That goal could not be deleted.");
+        }
     };
+
+    const selectedDateGoals = useMemo(() => goalsForDate(goals, selectedDate), [goals, selectedDate]);
+    const todayProgress = useMemo(() => getDayProgress(goals, new Date()), [goals]);
+    const streak = useMemo(() => getCurrentStreak(goals), [goals]);
+    const week = useMemo(() => getWeekSnapshot(goals), [goals]);
+    const weeklyCompleted = week.reduce((sum, day) => sum + day.completed, 0);
+    const weeklyTotal = week.reduce((sum, day) => sum + day.total, 0);
+    const consistency = weeklyTotal === 0 ? 0 : Math.round((weeklyCompleted / weeklyTotal) * 100);
+    const nextAction = todayProgress.scheduled.find((goal) => !isGoalCompleteForDate(goal, new Date()));
 
     if (status === "loading") {
         return (
-            <div className="flex h-screen items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100">
+            <div className="flex h-screen items-center justify-center bg-[#f5f7f2]">
                 <div className="text-center">
-                    <div className="mb-4 h-16 w-16 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 mx-auto"></div>
-                    <p className="text-lg font-semibold text-gray-700">Loading...</p>
+                    <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-[#dce5d6] border-t-[#255c3b]" />
+                    <p className="text-sm font-semibold text-slate-600">Preparing your day…</p>
                 </div>
             </div>
         );
     }
 
-    if (!session) {
-        return null;
-    }
+    if (!session) return null;
 
-    const selectedDateGoals = selectedDate
-        ? goals.filter((g) => {
-            // Normalize selected date to YYYY-MM-DD for string comparison
-            const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
-
-            // Daily goals or simple goals (check targetDate)
-            if (g.type === "daily" || (!g.startDate && !g.endDate && !g.recurringDays)) {
-                if (!g.targetDate) return false;
-                return format(new Date(g.targetDate), "yyyy-MM-dd") === selectedDateStr;
-            }
-
-            // Recurring/Long-term goals
-            const goalStartDateStr = format(new Date(g.startDate), "yyyy-MM-dd");
-            const goalEndDateStr = g.endDate ? format(new Date(g.endDate), "yyyy-MM-dd") : null;
-
-            // Check if selected date is after or equal to start date
-            if (selectedDateStr < goalStartDateStr) return false;
-
-            // Check if selected date is before or equal to end date (if exists)
-            if (goalEndDateStr && selectedDateStr > goalEndDateStr) return false;
-
-            // Check recurring days
-            if (g.recurringDays) {
-                try {
-                    const selectedDays: number[] = JSON.parse(g.recurringDays);
-                    const dayOfWeek = getDay(selectedDate);
-                    return selectedDays.includes(dayOfWeek);
-                } catch {
-                    return true;
-                }
-            }
-
-            return true;
-        })
-        : [];
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+        <div className="min-h-screen bg-[#f5f7f2] text-slate-900">
             <Navbar />
-            <main className="flex-1 container mx-auto p-4 lg:overflow-hidden lg:h-[calc(100vh-5rem)]">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
-                    <div className="h-[500px] lg:h-full overflow-hidden rounded-2xl shadow-xl border border-gray-100 bg-white">
-                        <Calendar goals={goals} onDateClick={setSelectedDate} />
+            <main className="mx-auto w-full max-w-[1500px] px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+                <section className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+                    <div>
+                        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-[#6e806d]">
+                            <Sparkles size={14} /> Your daily compass
+                        </div>
+                        <h1 className="font-display text-3xl font-bold tracking-[-0.04em] text-[#173e2a] sm:text-4xl">
+                            Good {greeting}, {session.user.name?.split(" ")[0]}.
+                        </h1>
+                        <p className="mt-2 max-w-2xl text-sm text-slate-500 sm:text-base">
+                            {nextAction
+                                ? `Your next best move: ${nextAction.title}`
+                                : todayProgress.total > 0
+                                    ? "Today is complete. Protect the momentum."
+                                    : "A clear day is a good place to choose one meaningful action."}
+                        </p>
                     </div>
-                    <div className="h-[600px] lg:h-full">
+                    <button onClick={fetchGoals} disabled={isRefreshing} className="soft-button self-start md:self-auto">
+                        <RefreshCw size={15} className={isRefreshing ? "animate-spin" : ""} />
+                        {isRefreshing ? "Syncing" : "Refresh"}
+                    </button>
+                </section>
+
+                {error && <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</div>}
+
+                <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    <article className="metric-card metric-card-dark col-span-2 sm:col-span-1">
+                        <div className="metric-icon bg-white/10 text-[#d9efc8]"><Target size={18} /></div>
+                        <span className="metric-label text-white/60">Today</span>
+                        <div className="flex items-end gap-2"><strong>{todayProgress.percentage}%</strong><span>{todayProgress.completed}/{todayProgress.total} done</span></div>
+                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#b7e38d] transition-all" style={{ width: `${todayProgress.percentage}%` }} /></div>
+                    </article>
+                    <article className="metric-card">
+                        <div className="metric-icon bg-[#fff1d7] text-[#a16016]"><Flame size={18} /></div>
+                        <span className="metric-label">Current streak</span>
+                        <div className="flex items-end gap-2"><strong>{streak}</strong><span>{streak === 1 ? "day" : "days"}</span></div>
+                        <p>Completed days in a row</p>
+                    </article>
+                    <article className="metric-card">
+                        <div className="metric-icon bg-[#e6edf9] text-[#385d93]"><Check size={18} /></div>
+                        <span className="metric-label">7-day consistency</span>
+                        <div className="flex items-end gap-2"><strong>{consistency}%</strong><span>{weeklyCompleted}/{weeklyTotal}</span></div>
+                        <div className="mt-3 flex items-end gap-1.5">
+                            {week.map((day) => (
+                                <div key={day.date.toISOString()} className="flex flex-1 flex-col items-center gap-1">
+                                    <div className="flex h-7 w-full items-end rounded-sm bg-[#edf1eb]"><div className="w-full rounded-sm bg-[#7ea36f]" style={{ height: `${Math.max(day.percentage, day.total ? 14 : 3)}%` }} /></div>
+                                    <span className="text-[9px] font-bold text-slate-400">{day.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </article>
+                    <article className="metric-card">
+                        <div className="metric-icon bg-[#eee8f7] text-[#6e5596]"><Sparkles size={18} /></div>
+                        <span className="metric-label">Active goals</span>
+                        <div className="flex items-end gap-2"><strong>{goals.filter((goal) => goal.status !== "archived").length}</strong><span>in motion</span></div>
+                        <p>Small actions compound</p>
+                    </article>
+                </section>
+
+                <section id="calendar" className="grid scroll-mt-24 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,.75fr)]">
+                    <div className="min-h-[610px] overflow-hidden rounded-[28px] border border-[#dfe6db] bg-white shadow-[0_18px_60px_rgba(38,67,48,0.07)]">
+                        <Calendar goals={goals} selectedDate={selectedDate} onDateClick={setSelectedDate} />
+                    </div>
+                    <div className="min-h-[610px]">
                         <RightPanel
                             selectedDate={selectedDate}
                             goals={selectedDateGoals}
+                            allGoals={goals}
                             onGoalAdded={fetchGoals}
                             onToggleGoal={toggleGoalStatus}
                             onDeleteGoal={deleteGoal}
                         />
                     </div>
-                </div>
+                </section>
             </main>
         </div>
     );

@@ -4,6 +4,8 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { ArrowRight, LockKeyhole, UserRound } from "lucide-react";
+import AuthShell from "@/components/AuthShell";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -12,86 +14,22 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError("");
-
-        const res = await signIn("credentials", {
-            username,
-            password,
-            redirect: false,
-        });
-
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault(); setLoading(true); setError("");
+        const result = await signIn("credentials", { username: username.trim(), password, redirect: false });
         setLoading(false);
-        if (res?.error) {
-            setError("Invalid username or password");
-        } else {
-            router.push("/dashboard");
-        }
+        if (result?.error) setError("That username and password do not match.");
+        else { router.push("/dashboard"); router.refresh(); }
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 p-4">
-            <div className="w-full max-w-md">
-                <div className="rounded-2xl bg-white p-8 shadow-2xl">
-                    <div className="mb-8 text-center">
-                        <h2 className="text-3xl font-bold text-gray-800">Welcome Back!</h2>
-                        <p className="mt-2 text-gray-600">Sign in to continue tracking your goals</p>
-                    </div>
-
-                    {error && (
-                        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-center text-red-600">
-                            {error}
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="mb-2 block text-sm font-semibold text-gray-700">
-                                Username
-                            </label>
-                            <input
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-gray-800 transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                                placeholder="Enter your username"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-semibold text-gray-700">
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-gray-800 transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                                placeholder="Enter your password"
-                                required
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3 font-bold text-white transition hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                        >
-                            {loading ? "Signing in..." : "Sign In"}
-                        </button>
-                    </form>
-
-                    <p className="mt-6 text-center text-gray-600">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/register" className="font-semibold text-purple-600 hover:text-purple-700 hover:underline">
-                            Create Account
-                        </Link>
-                    </p>
-                </div>
-            </div>
-        </div>
+        <AuthShell eyebrow="Welcome back" title="Return to what matters." description="Your plan is waiting. Sign in and take the next small step." footer={<>New to Northstar? <Link href="/register" className="font-bold text-[#2f6542] hover:underline">Create an account</Link></>}>
+            {error && <div role="alert" className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <label className="block"><span className="form-label">Username</span><div className="relative"><UserRound size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" /><input autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} className="form-input py-3 pl-10" placeholder="Your username" required /></div></label>
+                <label className="block"><span className="form-label">Password</span><div className="relative"><LockKeyhole size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" /><input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="form-input py-3 pl-10" placeholder="Your password" required /></div></label>
+                <button type="submit" disabled={loading} className="primary-button mt-2 w-full py-3.5">{loading ? "Signing you in…" : <>Continue to your day <ArrowRight size={16} /></>}</button>
+            </form>
+        </AuthShell>
     );
 }

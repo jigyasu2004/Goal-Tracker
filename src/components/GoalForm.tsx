@@ -1,184 +1,120 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
+import { CalendarDays, Check, Flag, Repeat2, X } from "lucide-react";
 
 interface GoalFormProps {
     selectedDate: Date;
     onGoalAdded: () => void;
+    onCancel?: () => void;
 }
 
 const DAYS_OF_WEEK = [
-    { value: 0, label: "Sun" },
-    { value: 1, label: "Mon" },
-    { value: 2, label: "Tue" },
-    { value: 3, label: "Wed" },
-    { value: 4, label: "Thu" },
-    { value: 5, label: "Fri" },
-    { value: 6, label: "Sat" },
+    { value: 0, label: "S" }, { value: 1, label: "M" }, { value: 2, label: "T" },
+    { value: 3, label: "W" }, { value: 4, label: "T" }, { value: 5, label: "F" },
+    { value: 6, label: "S" },
 ];
 
-export default function GoalForm({ selectedDate, onGoalAdded }: GoalFormProps) {
+const GOAL_TYPES = [
+    { value: "daily", label: "One-time", helper: "A single action", icon: Check },
+    { value: "short-term", label: "Habit", helper: "Repeat consistently", icon: Repeat2 },
+    { value: "long-term", label: "Goal", helper: "A longer commitment", icon: Flag },
+];
+
+export default function GoalForm({ selectedDate, onGoalAdded, onCancel }: GoalFormProps) {
     const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
     const [type, setType] = useState("daily");
     const [startDate, setStartDate] = useState(format(selectedDate, "yyyy-MM-dd"));
     const [endDate, setEndDate] = useState("");
     const [hasEndDate, setHasEndDate] = useState(false);
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    // Update startDate when selectedDate changes
-    useEffect(() => {
-        setStartDate(format(selectedDate, "yyyy-MM-dd"));
-    }, [selectedDate]);
+    useEffect(() => setStartDate(format(selectedDate, "yyyy-MM-dd")), [selectedDate]);
 
-    const isRecurring = type === "short-term" || type === "long-term";
+    const isRecurring = type !== "daily";
+    const toggleDay = (day: number) => setSelectedDays((current) => current.includes(day) ? current.filter((item) => item !== day) : [...current, day].sort());
 
-    const toggleDay = (day: number) => {
-        setSelectedDays(prev =>
-            prev.includes(day)
-                ? prev.filter(d => d !== day)
-                : [...prev, day].sort()
-        );
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
         if (!title.trim()) return;
 
         setLoading(true);
+        setError("");
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const goalData: any = {
-            title,
+        const goalData = {
+            title: title.trim(),
+            description: description.trim() || null,
             type,
-            targetDate: selectedDate.toISOString(),
+            targetDate: type === "daily" ? format(selectedDate, "yyyy-MM-dd") : null,
+            startDate: isRecurring ? startDate : undefined,
+            endDate: isRecurring && hasEndDate && endDate ? endDate : null,
+            recurringDays: isRecurring ? selectedDays : [],
         };
 
-        if (isRecurring) {
-            goalData.startDate = new Date(startDate).toISOString();
-            goalData.endDate = hasEndDate && endDate ? new Date(endDate).toISOString() : null;
-            goalData.recurringDays = selectedDays.length > 0 ? JSON.stringify(selectedDays) : null;
-        }
+        try {
+            const response = await fetch("/api/goals", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(goalData),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || data.error || "Could not add goal");
 
-        const res = await fetch("/api/goals", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(goalData),
-        });
-
-        setLoading(false);
-
-        if (res.ok) {
-            setTitle("");
-            setSelectedDays([]);
-            setHasEndDate(false);
-            setEndDate("");
             onGoalAdded();
+            onCancel?.();
+        } catch (submitError) {
+            setError(submitError instanceof Error ? submitError.message : "Could not add goal");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Goal Type and Title */}
-            <div className="flex gap-2">
-                <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    className="rounded-lg border-2 border-gray-200 px-4 py-3 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
-                >
-                    <option value="daily">🌅 Daily</option>
-                    <option value="short-term">📆 Short-term</option>
-                    <option value="long-term">🏔️ Long-term</option>
-                </select>
-                <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Add a new goal..."
-                    className="flex-1 rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    required
-                />
+        <form onSubmit={handleSubmit} className="rounded-3xl border border-[#dbe5d7] bg-[#f8faf6] p-4 sm:p-5">
+            <div className="mb-4 flex items-center justify-between">
+                <div><h3 className="font-display text-lg font-bold text-[#1c462e]">Add to your plan</h3><p className="text-xs text-slate-500">Make the action clear and easy to start.</p></div>
+                {onCancel && <button type="button" onClick={onCancel} aria-label="Close form" className="rounded-full p-2 text-slate-400 transition hover:bg-white hover:text-slate-700"><X size={18} /></button>}
             </div>
 
-            {/* Recurring Options (only for short-term and long-term) */}
-            {isRecurring && (
-                <div className="rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 p-4 space-y-4 border border-purple-100">
-                    <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-                        <span>🔄</span> Recurring Settings
-                    </h4>
+            <div className="mb-4 grid grid-cols-3 gap-2">
+                {GOAL_TYPES.map(({ value, label, helper, icon: Icon }) => (
+                    <button key={value} type="button" onClick={() => setType(value)} className={`rounded-2xl border p-2.5 text-left transition ${type === value ? "border-[#3a6c48] bg-white shadow-sm" : "border-transparent bg-[#edf2ea] hover:bg-white"}`}>
+                        <Icon size={16} className={type === value ? "text-[#2e6642]" : "text-slate-400"} />
+                        <span className="mt-2 block text-xs font-bold text-slate-700">{label}</span>
+                        <span className="hidden text-[9px] text-slate-400 sm:block">{helper}</span>
+                    </button>
+                ))}
+            </div>
 
-                    {/* Date Range */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">
-                                Start Date
-                            </label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                required
-                            />
+            <label className="form-label" htmlFor="goal-title">What will you do?</label>
+            <input id="goal-title" autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder={type === "short-term" ? "e.g. Walk for 20 minutes" : "e.g. Finish the project outline"} className="form-input" maxLength={120} required />
+
+            <label className="form-label mt-3" htmlFor="goal-why">Why does this matter? <span>(optional)</span></label>
+            <input id="goal-why" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="A short reminder for your future self" className="form-input" maxLength={240} />
+
+            {isRecurring && (
+                <div className="mt-4 space-y-4 border-t border-[#dfe7dc] pt-4">
+                    <div>
+                        <div className="mb-2 flex items-center justify-between"><span className="form-label mb-0">Repeat on</span><button type="button" onClick={() => setSelectedDays(selectedDays.length === 7 ? [] : [0, 1, 2, 3, 4, 5, 6])} className="text-[10px] font-bold text-[#386749]">{selectedDays.length === 7 ? "Clear" : "Every day"}</button></div>
+                        <div className="grid grid-cols-7 gap-1.5">
+                            {DAYS_OF_WEEK.map((day, index) => <button key={index} type="button" aria-pressed={selectedDays.includes(day.value)} onClick={() => toggleDay(day.value)} className={`aspect-square rounded-full text-[11px] font-extrabold transition ${selectedDays.includes(day.value) ? "bg-[#245b3a] text-white shadow-sm" : "border border-[#d6e0d2] bg-white text-slate-500 hover:border-[#7f9c79]"}`}>{day.label}</button>)}
                         </div>
-                        <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">
-                                <input
-                                    type="checkbox"
-                                    checked={hasEndDate}
-                                    onChange={(e) => setHasEndDate(e.target.checked)}
-                                    className="mr-2"
-                                />
-                                End Date
-                            </label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                disabled={!hasEndDate}
-                                className="w-full rounded-lg border-2 border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            />
-                        </div>
+                        <p className="mt-2 text-[10px] text-slate-400">No days selected means every day.</p>
                     </div>
 
-                    {/* Days of Week Selector */}
-                    <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-2">
-                            Repeat on (optional - leave empty for all days)
-                        </label>
-                        <div className="flex gap-2 flex-wrap">
-                            {DAYS_OF_WEEK.map((day) => (
-                                <button
-                                    key={day.value}
-                                    type="button"
-                                    onClick={() => toggleDay(day.value)}
-                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedDays.includes(day.value)
-                                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md scale-105"
-                                        : "bg-white text-gray-600 border-2 border-gray-200 hover:border-purple-300"
-                                        }`}
-                                >
-                                    {day.label}
-                                </button>
-                            ))}
-                        </div>
-                        {selectedDays.length > 0 && (
-                            <p className="text-xs text-gray-600 mt-2">
-                                Selected: {selectedDays.map(d => DAYS_OF_WEEK.find(day => day.value === d)?.label).join(", ")}
-                            </p>
-                        )}
+                    <div className="grid grid-cols-2 gap-3">
+                        <label><span className="form-label"><CalendarDays size={12} /> Starts</span><input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="form-input text-xs" required /></label>
+                        <label><span className="form-label"><input type="checkbox" checked={hasEndDate} onChange={(event) => setHasEndDate(event.target.checked)} className="accent-[#285d3c]" /> End date</span><input type="date" min={startDate} value={endDate} onChange={(event) => setEndDate(event.target.value)} disabled={!hasEndDate} className="form-input text-xs disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400" /></label>
                     </div>
                 </div>
             )}
 
-            {/* Submit Button */}
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 text-sm font-bold text-white hover:from-purple-600 hover:to-blue-600 shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {loading ? "Adding..." : "+ Add Goal"}
-            </button>
+            {error && <p className="mt-3 text-xs font-semibold text-red-600">{error}</p>}
+            <button type="submit" disabled={loading} className="primary-button mt-4 w-full">{loading ? "Adding to your plan…" : "Add to plan"}</button>
         </form>
     );
 }

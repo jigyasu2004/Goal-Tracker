@@ -1,235 +1,120 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-    format,
-    startOfMonth,
-    endOfMonth,
+    addMonths,
     eachDayOfInterval,
+    endOfMonth,
+    endOfWeek,
+    format,
+    isSameDay,
     isSameMonth,
     isToday,
-    isSameDay,
-    addMonths,
+    startOfMonth,
+    startOfWeek,
     subMonths,
-    isWithinInterval,
-    getDay,
 } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
-
-interface GoalCompletion {
-    id: string;
-    date: string;
-    completed: boolean;
-}
-
-interface Goal {
-    id: string;
-    title: string;
-    targetDate: string | null;
-    startDate: string;
-    endDate: string | null;
-    recurringDays: string | null;
-    type: string;
-    completions?: GoalCompletion[];
-}
+import { Goal, getDayProgress } from "@/lib/goal-utils";
 
 interface CalendarProps {
     goals: Goal[];
+    selectedDate: Date;
     onDateClick: (date: Date) => void;
 }
 
-export default function Calendar({ goals, onDateClick }: CalendarProps) {
-    const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
-    const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(currentMonth);
-    const startDate = new Date(monthStart);
-    startDate.setDate(startDate.getDate() - monthStart.getDay());
-    const endDate = new Date(monthEnd);
-    endDate.setDate(endDate.getDate() + (6 - monthEnd.getDay()));
+export default function Calendar({ goals, selectedDate, onDateClick }: CalendarProps) {
+    const [currentMonth, setCurrentMonth] = useState(startOfMonth(selectedDate));
 
-    const days = eachDayOfInterval({ start: startDate, end: endDate });
+    useEffect(() => {
+        if (!isSameMonth(selectedDate, currentMonth)) setCurrentMonth(startOfMonth(selectedDate));
+        // Only selectedDate should move the displayed month.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedDate]);
 
-    const getGoalsForDate = (date: Date) => {
-        return goals.filter((goal) => {
-            if (goal.type === "daily" || (!goal.startDate && !goal.endDate && !goal.recurringDays)) {
-                return goal.targetDate && isSameDay(new Date(goal.targetDate), date);
-            }
-
-            const goalStartDate = new Date(goal.startDate);
-            const goalEndDate = goal.endDate ? new Date(goal.endDate) : null;
-
-            const isInDateRange = goalEndDate
-                ? isWithinInterval(date, { start: goalStartDate, end: goalEndDate })
-                : date >= goalStartDate;
-
-            if (!isInDateRange) return false;
-
-            if (goal.recurringDays) {
-                try {
-                    const selectedDays: number[] = JSON.parse(goal.recurringDays);
-                    const dayOfWeek = getDay(date);
-                    return selectedDays.includes(dayOfWeek);
-                } catch {
-                    return true;
-                }
-            }
-
-            return true;
+    const days = useMemo(() => {
+        const monthStart = startOfMonth(currentMonth);
+        const monthEnd = endOfMonth(currentMonth);
+        return eachDayOfInterval({
+            start: startOfWeek(monthStart),
+            end: endOfWeek(monthEnd),
         });
-    };
+    }, [currentMonth]);
 
-    const getGoalStatusForDate = (goal: Goal, date: Date) => {
-        if (!goal.completions) return false;
-        // Check if there is a completion record for this specific date
-        const completion = goal.completions.find(c => isSameDay(new Date(c.date), date));
-        return completion ? completion.completed : false;
-    };
-
-    const getGoalColor = (type: string) => {
-        switch (type) {
-            case "daily":
-                return "bg-gradient-to-r from-green-400 to-emerald-500";
-            case "short-term":
-                return "bg-gradient-to-r from-blue-400 to-cyan-500";
-            case "long-term":
-                return "bg-gradient-to-r from-purple-400 to-pink-500";
-            default:
-                return "bg-gray-400";
-        }
-    };
-
-    const handleDateClick = (day: Date) => {
-        setSelectedDate(day);
-        onDateClick(day);
+    const goToToday = () => {
+        const today = new Date();
+        setCurrentMonth(startOfMonth(today));
+        onDateClick(today);
     };
 
     return (
-        <div className="h-full rounded-2xl bg-white p-3 shadow-xl border border-gray-100 flex flex-col">
-            {/* Header */}
-            <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-800">
-                    {format(currentMonth, "MMMM yyyy")}
-                </h2>
-                <div className="flex gap-1">
-                    <button
-                        onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                        className="rounded-lg bg-purple-100 p-1.5 text-purple-600 transition hover:bg-purple-200"
-                    >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <button
-                        onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                        className="rounded-lg bg-purple-100 p-1.5 text-purple-600 transition hover:bg-purple-200"
-                    >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
+        <div className="flex h-full flex-col p-4 sm:p-6">
+            <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#7f8e7b]">Progress calendar</span>
+                    <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#183d2a]">{format(currentMonth, "MMMM yyyy")}</h2>
                 </div>
+                <div className="flex items-center gap-2">
+                    <button onClick={goToToday} className="rounded-full border border-[#dce4d8] px-3.5 py-2 text-xs font-bold text-[#41634a] transition hover:bg-[#f2f6ef]">Today</button>
+                    <button aria-label="Previous month" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="calendar-nav"><ChevronLeft size={17} /></button>
+                    <button aria-label="Next month" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="calendar-nav"><ChevronRight size={17} /></button>
+                </div>
+            </header>
+
+            <div className="mb-2 grid grid-cols-7 gap-1 sm:gap-2">
+                {WEEKDAYS.map((weekday) => <div key={weekday} className="py-1 text-center text-[9px] font-extrabold tracking-[0.12em] text-slate-400 sm:text-[10px]">{weekday}</div>)}
             </div>
 
-            {/* Weekday headers */}
-            <div className="mb-1 grid grid-cols-7 gap-1">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                    <div key={day} className="text-center text-[10px] font-bold text-gray-600">
-                        {day}
-                    </div>
-                ))}
-            </div>
-
-            {/* Calendar grid */}
-            <div className="flex-1 grid grid-cols-7 gap-1 overflow-auto content-start">
+            <div className="grid flex-1 auto-rows-fr grid-cols-7 gap-1 sm:gap-2">
                 {days.map((day) => {
-                    const dayGoals = getGoalsForDate(day);
-                    const isCurrentMonth = isSameMonth(day, currentMonth);
-                    const isTodayDate = isToday(day);
-                    const isSelected = selectedDate && isSameDay(day, selectedDate);
-
-                    // Only show status symbols for past dates (excluding today)
-                    const isPastDate = day < new Date() && !isTodayDate;
+                    const progress = getDayProgress(goals, day);
+                    const selected = isSameDay(day, selectedDate);
+                    const current = isSameMonth(day, currentMonth);
+                    const complete = progress.total > 0 && progress.completed === progress.total;
 
                     return (
                         <button
-                            key={day.toString()}
-                            onClick={() => handleDateClick(day)}
+                            key={day.toISOString()}
+                            onClick={() => onDateClick(day)}
+                            aria-label={`${format(day, "MMMM d")}, ${progress.completed} of ${progress.total} complete`}
                             className={clsx(
-                                "relative min-h-[60px] lg:min-h-[90px] rounded-lg p-1 lg:p-1.5 text-left transition-all",
-                                {
-                                    "bg-gradient-to-br from-purple-500 to-blue-500 text-white shadow-md": isTodayDate,
-                                    "bg-gray-50 hover:bg-gray-100": !isTodayDate && isCurrentMonth && !isSelected,
-                                    "bg-gray-50/50 text-gray-400": !isCurrentMonth,
-                                    "ring-2 ring-purple-400 bg-purple-50": isSelected && !isTodayDate,
-                                    "hover:shadow-sm": isCurrentMonth,
-                                }
+                                "group relative flex min-h-[62px] flex-col rounded-xl border p-1.5 text-left transition sm:min-h-[78px] sm:rounded-2xl sm:p-2.5 lg:min-h-[86px]",
+                                selected
+                                    ? "border-[#295c3c] bg-[#214b33] text-white shadow-[0_8px_24px_rgba(30,73,47,.2)]"
+                                    : current
+                                        ? "border-[#edf0ea] bg-[#fbfcfa] text-[#294436] hover:-translate-y-0.5 hover:border-[#bfcdb9] hover:shadow-md"
+                                        : "border-transparent bg-transparent text-slate-300 hover:bg-slate-50",
                             )}
                         >
-                            <div className={clsx("text-xs font-semibold mb-1", {
-                                "text-white": isTodayDate,
-                                "text-gray-800": !isTodayDate && isCurrentMonth,
-                            })}>
-                                {format(day, "d")}
+                            <div className="flex w-full items-start justify-between">
+                                <span className={clsx("flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold sm:h-7 sm:w-7 sm:text-sm", isToday(day) && !selected && "bg-[#dff0d1] text-[#295b39]")}>{format(day, "d")}</span>
+                                {progress.total > 0 && <span className={clsx("hidden text-[9px] font-bold sm:block", selected ? "text-white/65" : complete ? "text-[#4d7b53]" : "text-slate-400")}>{progress.completed}/{progress.total}</span>}
                             </div>
 
-                            {/* Goal titles */}
-                            <div className="space-y-0.5">
-                                {dayGoals.slice(0, 2).map((goal) => {
-                                    const isCompleted = getGoalStatusForDate(goal, day);
-
-                                    return (
-                                        <div
-                                            key={goal.id}
-                                            className={clsx(
-                                                "rounded px-1 py-0.5 text-[9px] font-medium text-white shadow-sm flex items-center justify-between",
-                                                getGoalColor(goal.type),
-                                                { "opacity-60": isPastDate && !isCompleted }
-                                            )}
-                                            title={goal.title}
-                                        >
-                                            {/* Desktop: Show Title */}
-                                            <span className="hidden lg:block truncate">{goal.title}</span>
-
-                                            {/* Mobile: Show Dot */}
-                                            <span className="block lg:hidden h-1.5 w-1.5 rounded-full bg-white mx-auto"></span>
-
-                                            {isPastDate && (
-                                                <span className="hidden lg:inline ml-1 text-[8px]">
-                                                    {isCompleted ? "✅" : "❌"}
-                                                </span>
-                                            )}
+                            <div className="mt-auto w-full">
+                                {progress.total > 0 ? (
+                                    <>
+                                        <div className={clsx("mb-1 hidden truncate text-[9px] font-semibold sm:block", selected ? "text-white/70" : "text-slate-500")}>
+                                            {complete ? "Day complete" : progress.scheduled.find((goal) => !goal.completions?.some((completion) => completion.completed && isSameDay(new Date(completion.date), day)))?.title || "In progress"}
                                         </div>
-                                    );
-                                })}
-                                {dayGoals.length > 2 && (
-                                    <div className="text-[9px] font-semibold text-purple-600 bg-purple-100 rounded px-1 py-0.5 text-center">
-                                        <span className="hidden lg:inline">+{dayGoals.length - 2} more</span>
-                                        <span className="lg:hidden">+{dayGoals.length - 2}</span>
-                                    </div>
-                                )}
+                                        <div className={clsx("h-1 overflow-hidden rounded-full", selected ? "bg-white/15" : "bg-[#e6ebe3]")}>
+                                            <div className={clsx("h-full rounded-full transition-all", complete ? "bg-[#91c66c]" : selected ? "bg-[#d6eba7]" : "bg-[#e7a958]")} style={{ width: `${progress.percentage}%` }} />
+                                        </div>
+                                    </>
+                                ) : <span className="hidden text-[9px] text-slate-300 sm:block">Open day</span>}
                             </div>
                         </button>
                     );
                 })}
             </div>
 
-            {/* Legend */}
-            <div className="mt-2 flex gap-2 border-t border-gray-200 pt-2">
-                <div className="flex items-center gap-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500"></div>
-                    <span className="text-[9px] text-gray-600">Daily</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500"></div>
-                    <span className="text-[9px] text-gray-600">Short</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-purple-400 to-pink-500"></div>
-                    <span className="text-[9px] text-gray-600">Long</span>
-                </div>
-            </div>
+            <footer className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#edf0ea] pt-4 text-[11px] text-slate-400">
+                <span>Select a day to plan, check in, or reflect.</span>
+                <div className="flex gap-3"><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-[#e7a958]" /> In progress</span><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-[#91c66c]" /> Complete</span></div>
+            </footer>
         </div>
     );
 }

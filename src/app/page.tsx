@@ -1,103 +1,54 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useSession, signOut } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { useEffect, Suspense } from "react";
+import { useSession } from "next-auth/react";
+import { ArrowRight, BarChart3, CalendarDays, Check, Feather, Flame, NotebookPen, Sparkles, Target } from "lucide-react";
 
-function HomeContent() {
-    const { status } = useSession();
-    const searchParams = useSearchParams();
-    const deleted = searchParams.get("deleted");
-
-    useEffect(() => {
-        if (deleted === "true") {
-            signOut({ callbackUrl: "/" });
-        }
-    }, [deleted]);
-
-    return (
-        <main className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700">
-            <div className="container mx-auto px-4 py-16">
-                <div className="grid md:grid-cols-2 gap-12 items-center min-h-[calc(100vh-8rem)]">
-                    {/* Left side - Text content */}
-                    <div className="text-white space-y-6">
-                        <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-                            Achieve Your <span className="text-yellow-300">Goals</span> with Ease
-                        </h1>
-                        <p className="text-xl md:text-2xl text-purple-100">
-                            Track daily, short-term, and long-term goals with our intuitive calendar interface. Stay organized and motivated!
-                        </p>
-                        <div className="flex flex-wrap gap-4 pt-4">
-                            {status === "authenticated" ? (
-                                <Link
-                                    href="/dashboard"
-                                    className="px-8 py-4 bg-white text-purple-600 rounded-full text-lg font-bold hover:bg-yellow-300 hover:text-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                >
-                                    Go to Dashboard
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link
-                                        href="/register"
-                                        className="px-8 py-4 bg-white text-purple-600 rounded-full text-lg font-bold hover:bg-yellow-300 hover:text-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                    >
-                                        Get Started Free
-                                    </Link>
-                                    <Link
-                                        href="/login"
-                                        className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full text-lg font-bold hover:bg-white hover:text-purple-600 transition-all duration-300"
-                                    >
-                                        Sign In
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Features */}
-                        <div className="grid grid-cols-3 gap-4 pt-8">
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-yellow-300">📅</div>
-                                <p className="text-sm mt-2">Calendar View</p>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-yellow-300">📝</div>
-                                <p className="text-sm mt-2">Smart Notes</p>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-3xl font-bold text-yellow-300">🎯</div>
-                                <p className="text-sm mt-2">Track Progress</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right side - Hero image */}
-                    <div className="relative">
-                        <div className="relative z-10">
-                            <Image
-                                src="/hero.svg"
-                                alt="Goal Tracking Illustration"
-                                width={600}
-                                height={600}
-                                className="w-full h-auto drop-shadow-2xl"
-                                priority
-                            />
-                        </div>
-                        {/* Decorative elements */}
-                        <div className="absolute -top-4 -right-4 w-72 h-72 bg-yellow-300 rounded-full opacity-20 blur-3xl"></div>
-                        <div className="absolute -bottom-4 -left-4 w-72 h-72 bg-purple-300 rounded-full opacity-20 blur-3xl"></div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    );
-}
+const PREVIEW_GOALS = [
+    { label: "30 minute focused walk", done: true, type: "Habit" },
+    { label: "Write project outline", done: true, type: "Action" },
+    { label: "Read 10 pages", done: false, type: "Habit" },
+];
 
 export default function Home() {
+    const { status } = useSession();
+
     return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <HomeContent />
-        </Suspense>
+        <main className="overflow-hidden bg-[#f5f7f1] text-slate-900">
+            <nav className="relative z-20 mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
+                <Link href="/" className="flex items-center gap-2.5"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#204d33] text-[#d9f0b7]"><Target size={20} /></span><span className="font-display text-lg font-extrabold tracking-tight text-[#173e2a]">Northstar</span></Link>
+                <div className="hidden items-center gap-8 text-xs font-semibold text-slate-500 md:flex"><a href="#method" className="hover:text-[#285d3c]">How it works</a><a href="#features" className="hover:text-[#285d3c]">Features</a></div>
+                <div className="flex items-center gap-2">{status === "authenticated" ? <Link href="/dashboard" className="primary-button py-2.5">Open dashboard <ArrowRight size={15} /></Link> : <><Link href="/login" className="hidden rounded-full px-4 py-2 text-xs font-bold text-[#315a3d] hover:bg-white sm:block">Sign in</Link><Link href="/register" className="primary-button py-2.5">Start free <ArrowRight size={15} /></Link></>}</div>
+            </nav>
+
+            <section className="relative mx-auto grid min-h-[720px] max-w-7xl items-center gap-14 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-[.92fr_1.08fr] lg:pt-8">
+                <div className="relative z-10 max-w-xl">
+                    <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d7e4d0] bg-white/80 px-3.5 py-2 text-[10px] font-extrabold uppercase tracking-[0.15em] text-[#4e7354]"><Sparkles size={13} /> Goals that survive real life</div>
+                    <h1 className="font-display text-5xl font-extrabold leading-[1.02] tracking-[-0.055em] text-[#173e2a] sm:text-6xl lg:text-7xl">Turn intention into <span className="relative text-[#648a55]">momentum.<svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 320 15" fill="none"><path d="M4 10C75 2 191 3 316 8" stroke="#b9d894" strokeWidth="6" strokeLinecap="round" /></svg></span></h1>
+                    <p className="mt-7 max-w-lg text-base leading-7 text-slate-500 sm:text-lg">Plan one meaningful day, build habits you can actually keep, and learn from your progress without turning your life into a spreadsheet.</p>
+                    <div className="mt-8 flex flex-wrap gap-3">{status === "authenticated" ? <Link href="/dashboard" className="primary-button px-6 py-3.5">Continue your journey <ArrowRight size={16} /></Link> : <><Link href="/register" className="primary-button px-6 py-3.5">Build your first plan <ArrowRight size={16} /></Link><Link href="/login" className="soft-button h-auto px-6 py-3.5">I already have an account</Link></>}</div>
+                    <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-[11px] font-semibold text-slate-400"><span className="flex items-center gap-1.5"><Check size={13} className="text-[#5f8b5d]" /> Free to start</span><span className="flex items-center gap-1.5"><Check size={13} className="text-[#5f8b5d]" /> No guilt streaks</span><span className="flex items-center gap-1.5"><Check size={13} className="text-[#5f8b5d]" /> Private reflections</span></div>
+                </div>
+
+                <div className="relative mx-auto w-full max-w-2xl lg:ml-auto">
+                    <div className="absolute -left-12 top-12 h-52 w-52 rounded-full bg-[#cbe4ad]/45 blur-3xl" /><div className="absolute -right-16 bottom-5 h-72 w-72 rounded-full bg-[#f4d7a6]/30 blur-3xl" />
+                    <div className="relative rotate-[1.2deg] rounded-[30px] border border-white/80 bg-white/90 p-4 shadow-[0_35px_100px_rgba(37,73,49,.18)] backdrop-blur sm:p-6">
+                        <div className="mb-5 flex items-center justify-between"><div><span className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-[#789076]">Tuesday, August 19</span><h2 className="mt-1 font-display text-xl font-bold text-[#1d482f]">Good morning, Jigyasu.</h2></div><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e1edd9] text-xs font-extrabold text-[#315d3e]">J</span></div>
+                        <div className="grid gap-3 sm:grid-cols-[.78fr_1.22fr]">
+                            <div className="rounded-[22px] bg-[#214b33] p-4 text-white"><span className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/50">Today</span><strong className="mt-5 block text-3xl">67%</strong><p className="mt-1 text-[10px] text-white/55">2 of 3 complete</p><div className="mt-5 h-1.5 rounded-full bg-white/10"><div className="h-full w-2/3 rounded-full bg-[#c7e993]" /></div></div>
+                            <div className="rounded-[22px] border border-[#e6ebe2] bg-[#fafbf8] p-4"><div className="flex items-center justify-between"><span className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-400">Consistency</span><Flame size={16} className="text-[#d28b3f]" /></div><div className="mt-4 flex h-14 items-end gap-2">{[45, 78, 62, 100, 75, 92, 67].map((height, index) => <div key={index} className="flex flex-1 flex-col items-center gap-1"><div className="flex h-10 w-full items-end rounded-sm bg-[#e9eee6]"><i className="block w-full rounded-sm bg-[#7fa36e]" style={{ height: `${height}%` }} /></div><small className="text-[7px] font-bold text-slate-300">{['W','T','F','S','S','M','T'][index]}</small></div>)}</div></div>
+                        </div>
+                        <div className="mt-3 rounded-[22px] border border-[#e6ebe2] bg-white p-4"><div className="mb-3 flex items-center justify-between"><div><span className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-400">Today&apos;s plan</span><p className="mt-1 text-xs font-bold text-[#31523b]">One action at a time</p></div><span className="rounded-full bg-[#edf4e9] px-2.5 py-1 text-[8px] font-bold text-[#527359]">2 / 3 done</span></div><div className="space-y-2">{PREVIEW_GOALS.map((goal) => <div key={goal.label} className={`flex items-center gap-3 rounded-xl border p-2.5 ${goal.done ? "border-[#e7ece3] bg-[#f8faf7]" : "border-[#dce5d8]"}`}><span className={`flex h-6 w-6 items-center justify-center rounded-full ${goal.done ? "bg-[#dcedd1] text-[#39704a]" : "border border-[#cbd7c7] text-transparent"}`}><Check size={13} /></span><div className="min-w-0 flex-1"><p className={`truncate text-[10px] font-bold ${goal.done ? "text-slate-400 line-through" : "text-slate-600"}`}>{goal.label}</p><span className="text-[7px] font-bold uppercase tracking-wide text-slate-300">{goal.type}</span></div></div>)}</div></div>
+                    </div>
+                    <div className="absolute -bottom-5 -left-5 flex items-center gap-3 rounded-2xl border border-white bg-white p-3 shadow-xl"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff0d8] text-[#bc752d]"><Flame size={18} /></span><div><strong className="block text-xs text-slate-700">8 day streak</strong><small className="text-[9px] text-slate-400">Gentle consistency</small></div></div>
+                </div>
+            </section>
+
+            <section id="method" className="bg-[#1c4730] px-5 py-20 text-white sm:px-8"><div className="mx-auto max-w-6xl"><div className="mx-auto max-w-2xl text-center"><span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#b9da8c]">The Northstar method</span><h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl">A feedback loop for real progress.</h2><p className="mt-4 text-sm leading-6 text-white/55">Planning matters. Reflection is what turns a plan into a system that fits your life.</p></div><div className="mt-12 grid gap-4 md:grid-cols-3">{[{icon:CalendarDays,title:"Plan the day",text:"Translate vague goals into actions you can complete today."},{icon:Target,title:"Show up",text:"Check in quickly and see momentum build across your calendar."},{icon:Feather,title:"Learn, don’t judge",text:"Capture what worked and adjust the plan for next time."}].map(({icon:Icon,title,text},index) => <article key={title} className="rounded-[24px] border border-white/10 bg-white/[0.05] p-6"><span className="mb-8 flex h-10 w-10 items-center justify-center rounded-xl bg-[#d7eead] text-[#214b33]"><Icon size={19} /></span><small className="text-[9px] font-extrabold tracking-widest text-white/35">0{index + 1}</small><h3 className="mt-2 font-display text-xl font-bold">{title}</h3><p className="mt-2 text-xs leading-5 text-white/50">{text}</p></article>)}</div></div></section>
+
+            <section id="features" className="px-5 py-20 sm:px-8"><div className="mx-auto max-w-6xl"><div className="grid items-end gap-6 md:grid-cols-2"><div><span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#6c8669]">Made for follow-through</span><h2 className="mt-3 max-w-lg font-display text-3xl font-bold tracking-[-0.04em] text-[#173e2a] sm:text-4xl">Useful clarity, without productivity theatre.</h2></div><p className="max-w-md text-sm leading-6 text-slate-500 md:ml-auto">Everything is designed to answer three questions: what matters today, am I being consistent, and what should I change?</p></div><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[{icon:CalendarDays,title:"Visual calendar",text:"See active and completed days at a glance."},{icon:Flame,title:"Honest streaks",text:"Rest days do not punish your consistency."},{icon:BarChart3,title:"Weekly pulse",text:"Measure follow-through, not just ambition."},{icon:NotebookPen,title:"Linked reflections",text:"Keep lessons beside the day or goal."}].map(({icon:Icon,title,text}) => <article key={title} className="rounded-[22px] border border-[#e0e7dc] bg-white p-5 shadow-[0_10px_30px_rgba(42,72,48,.04)]"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#edf3e9] text-[#4c7454]"><Icon size={18} /></span><h3 className="mt-5 text-sm font-bold text-[#244a32]">{title}</h3><p className="mt-2 text-xs leading-5 text-slate-400">{text}</p></article>)}</div></div></section>
+
+            <footer className="border-t border-[#dfe6da] px-5 py-8 sm:px-8"><div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row"><div className="flex items-center gap-2 text-sm font-extrabold text-[#254c34]"><Target size={17} /> Northstar</div><p className="text-[11px] text-slate-400">Choose direction. Build momentum. Adjust with kindness.</p></div></footer>
+        </main>
     );
 }

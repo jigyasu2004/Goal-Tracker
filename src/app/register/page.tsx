@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { ArrowRight, AtSign, LockKeyhole, UserRound } from "lucide-react";
+import AuthShell from "@/components/AuthShell";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -12,107 +14,28 @@ export default function RegisterPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError("");
-
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-        const res = await fetch("/api/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ username, email, password, timezone }),
-        });
-
-        setLoading(false);
-        if (res.ok) {
-            router.push("/login");
-        } else {
-            const data = await res.json();
-            setError(data.message || "Registration failed. Please try again.");
-        }
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault(); setLoading(true); setError("");
+        try {
+            const response = await fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: username.trim(), email: email.trim(), password, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }) });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || "Registration failed.");
+            router.push("/login?created=true");
+        } catch (submitError) {
+            setError(submitError instanceof Error ? submitError.message : "Registration failed.");
+        } finally { setLoading(false); }
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 p-4">
-            <div className="w-full max-w-md">
-                <div className="rounded-2xl bg-white p-8 shadow-2xl">
-                    <div className="mb-8 text-center">
-                        <h2 className="text-3xl font-bold text-gray-800">Create Account</h2>
-                        <p className="mt-2 text-gray-600">Start your goal tracking journey today</p>
-                    </div>
-
-                    {error && (
-                        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-center text-red-600">
-                            {error}
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="mb-2 block text-sm font-semibold text-gray-700">
-                                Username
-                            </label>
-                            <input
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-gray-800 transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                                placeholder="Choose a username"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-semibold text-gray-700">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-gray-800 transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                                placeholder="Enter your email"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-semibold text-gray-700">
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-gray-800 transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                                placeholder="Create a password"
-                                required
-                                minLength={6}
-                            />
-                            <p className="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3 font-bold text-white transition hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                        >
-                            {loading ? "Creating account..." : "Create Account"}
-                        </button>
-                    </form>
-
-                    <p className="mt-6 text-center text-gray-600">
-                        Already have an account?{" "}
-                        <Link href="/login" className="font-semibold text-purple-600 hover:text-purple-700 hover:underline">
-                            Sign In
-                        </Link>
-                    </p>
-                </div>
-            </div>
-        </div>
+        <AuthShell eyebrow="Start small" title="Build a life you can measure." description="Create a private space for your goals, habits, and honest reflections." footer={<>Already have an account? <Link href="/login" className="font-bold text-[#2f6542] hover:underline">Sign in</Link></>}>
+            {error && <div role="alert" className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+                <label className="block"><span className="form-label">Username</span><div className="relative"><UserRound size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" /><input autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} className="form-input py-3 pl-10" placeholder="3–30 letters or numbers" minLength={3} maxLength={30} pattern="[a-zA-Z0-9_-]+" required /></div></label>
+                <label className="block"><span className="form-label">Email</span><div className="relative"><AtSign size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" /><input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="form-input py-3 pl-10" placeholder="you@example.com" required /></div></label>
+                <label className="block"><span className="form-label">Password</span><div className="relative"><LockKeyhole size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" /><input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className="form-input py-3 pl-10" placeholder="At least 8 characters" minLength={8} maxLength={128} required /></div></label>
+                <p className="text-[11px] leading-5 text-slate-400">By creating an account, you agree to treat your goals with curiosity—not guilt.</p>
+                <button type="submit" disabled={loading} className="primary-button w-full py-3.5">{loading ? "Creating your space…" : <>Create my space <ArrowRight size={16} /></>}</button>
+            </form>
+        </AuthShell>
     );
 }

@@ -1,58 +1,69 @@
-# 🎯 Goal Tracker
+# Northstar
 
-A modern, full-stack goal tracking application built with Next.js, Prisma, and PostgreSQL. Track your daily, short-term, and long-term goals with a beautiful, responsive interface.
+Northstar is a full-stack goal and habit tracker built to turn long-term intention into clear daily action. It combines a progress calendar, recurring habits, gentle streaks, weekly consistency, and linked reflections in one responsive workspace.
 
-**🚀 Live Demo:** [https://goal-tracker-cyan.vercel.app/](https://goal-tracker-cyan.vercel.app/)
+**Live demo:** [goal-tracker-cyan.vercel.app](https://goal-tracker-cyan.vercel.app/)
 
-## ✨ Features
+## Features
 
-- **📅 Interactive Calendar**: Visual history of your goal completion with daily status indicators.
-- **📝 Smart Notes**: Context-aware note-taking linked to specific dates or goals.
-- **🔄 Recurring Goals**: Set goals that repeat on specific days (e.g., "Gym on Mon/Wed/Fri").
-- **📱 Fully Responsive**: Seamless experience on desktop, tablet, and mobile devices.
-- **🔐 Secure Authentication**: User accounts protected with NextAuth.js.
-- **🎨 Modern UI**: Beautiful gradient design with dark/light mode elements.
+- **Daily compass** — opens on today and surfaces the next incomplete action.
+- **Tasks, habits, and goals** — plan one-time actions or repeat them on selected weekdays.
+- **Momentum dashboard** — see daily completion, current streak, seven-day consistency, and active goals.
+- **Progress calendar** — scan completion history and open any day to plan or reflect.
+- **Linked reflections** — save notes generally, for a specific date, or alongside a goal.
+- **Timezone-aware reminders** — optional nightly reminder and completion emails.
+- **Responsive and accessible** — keyboard focus states, reduced-motion support, and layouts for phone through desktop.
+- **Account isolation** — every goal and note mutation is scoped to the authenticated user.
 
-## 🛠️ Tech Stack
+## Stack
 
-- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Database**: [PostgreSQL](https://www.postgresql.org/) (via Supabase)
-- **ORM**: [Prisma](https://www.prisma.io/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Auth**: [NextAuth.js](https://next-auth.js.org/)
-- **Deployment**: [Vercel](https://vercel.com/)
+- Next.js 15 App Router and TypeScript
+- React 18 and Tailwind CSS
+- PostgreSQL with Prisma
+- NextAuth.js credentials authentication
+- Nodemailer and node-cron for optional reminders
 
-## 🚀 Getting Started
+## Local setup
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/jigyasu2004/Goal-Tracker.git
-    ```
+```bash
+git clone https://github.com/jigyasu2004/Goal-Tracker.git
+cd Goal-Tracker
+npm install
+```
 
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
+Create `.env`:
 
-3.  **Set up Environment Variables**:
-    Create a `.env` file with:
-    ```env
-    DATABASE_URL="your_postgres_connection_string"
-    NEXTAUTH_SECRET="your_secret_key"
-    NEXTAUTH_URL="http://localhost:3000"
-    ```
+```env
+DATABASE_URL="your_postgres_connection_string"
+NEXTAUTH_SECRET="a-long-random-secret"
+NEXTAUTH_URL="http://localhost:3000"
 
-4.  **Run Database Migrations**:
-    ```bash
-    npx prisma db push
-    ```
+# Optional email reminders
+SMTP_HOST="smtp.example.com"
+SMTP_PORT="587"
+SMTP_USER="your-smtp-user"
+SMTP_PASS="your-smtp-password"
 
-5.  **Run the development server**:
-    ```bash
-    npm run dev
-    ```
+# Required only if calling the protected scheduler endpoint
+CRON_SECRET="another-long-random-secret"
+```
 
-## 📄 License
+Prepare the database and start the app:
 
-This project is open source and available under the [MIT License](LICENSE).
+```bash
+npx prisma migrate deploy
+npm run dev
+```
+
+## Verification
+
+```bash
+npm run lint
+npx tsc --noEmit
+npx next build
+npm audit --omit=dev
+```
+
+## License
+
+This project is available under the MIT License.

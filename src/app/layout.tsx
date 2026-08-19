@@ -6,8 +6,8 @@ import { Providers } from "./Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "Goal Tracker",
-    description: "Track your daily, short-term, and long-term goals.",
+    title: "Northstar — Goals that become habits",
+    description: "Plan meaningful goals, build consistent habits, and reflect on your progress.",
 };
 
 export default function RootLayout({
