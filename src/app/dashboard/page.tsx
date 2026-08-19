@@ -7,6 +7,7 @@ import { Check, Flame, RefreshCw, Sparkles, Target } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Calendar from "@/components/Calendar";
 import RightPanel from "@/components/RightPanel";
+import MomentumCoach from "@/components/MomentumCoach";
 import {
     Goal,
     getCurrentStreak,
@@ -102,6 +103,7 @@ export default function DashboardPage() {
     };
 
     const selectedDateGoals = useMemo(() => goalsForDate(goals, selectedDate), [goals, selectedDate]);
+    const selectedDateProgress = useMemo(() => getDayProgress(goals, selectedDate), [goals, selectedDate]);
     const todayProgress = useMemo(() => getDayProgress(goals, new Date()), [goals]);
     const streak = useMemo(() => getCurrentStreak(goals), [goals]);
     const week = useMemo(() => getWeekSnapshot(goals), [goals]);
@@ -189,6 +191,14 @@ export default function DashboardPage() {
                         <p>Small actions compound</p>
                     </article>
                 </section>
+
+                <MomentumCoach
+                    goals={selectedDateGoals}
+                    selectedDate={selectedDate}
+                    progress={selectedDateProgress}
+                    streak={streak}
+                    consistency={consistency}
+                />
 
                 <section id="calendar" className="grid scroll-mt-24 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,.75fr)]">
                     <div className="glass-panel min-h-[610px] overflow-hidden rounded-[28px]">

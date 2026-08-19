@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Activity, ArrowRight, BarChart3, BrainCircuit, CalendarDays, Check, ChevronRight, CircleDot, Flame, Orbit, Sparkles, Target, Zap } from "lucide-react";
+import HelpCenter from "@/components/HelpCenter";
+import ThemeMenu from "@/components/ThemeMenu";
 
 const PREVIEW_GOALS = [
     { label: "Deep work protocol", done: true, type: "FOCUS" },
@@ -24,7 +26,7 @@ export default function Home() {
                     <span className="font-display text-lg font-extrabold tracking-tight text-white">Northstar</span><span className="rounded-md border border-[#5eead4]/15 bg-[#5eead4]/[0.06] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.16em] text-[#77e8df]">OS</span>
                 </Link>
                 <div className="hidden items-center gap-8 text-[11px] font-semibold text-[#737d99] md:flex"><a href="#system" className="transition hover:text-[#8ff8ef]">The system</a><a href="#features" className="transition hover:text-[#8ff8ef]">Capabilities</a><span className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.15em] text-[#57617d]"><span className="status-dot" /> Online</span></div>
-                <div className="flex items-center gap-2">{status === "authenticated" ? <Link href="/dashboard" className="primary-button py-2.5">Enter workspace <ArrowRight size={15} /></Link> : <><Link href="/login" className="hidden rounded-xl px-4 py-2 text-xs font-bold text-[#929bb6] transition hover:bg-white/[0.04] hover:text-white sm:block">Sign in</Link><Link href="/register" className="primary-button py-2.5">Initialize <ArrowRight size={15} /></Link></>}</div>
+                <div className="flex items-center gap-2"><ThemeMenu /><HelpCenter />{status === "authenticated" ? <Link href="/dashboard" className="primary-button py-2.5">Enter workspace <ArrowRight size={15} /></Link> : <><Link href="/login" className="hidden rounded-xl px-4 py-2 text-xs font-bold text-[#929bb6] transition hover:bg-white/[0.04] hover:text-white sm:block">Sign in</Link><Link href="/register" className="primary-button py-2.5"><span className="hidden sm:inline">Initialize</span><span className="sm:hidden">Start</span> <ArrowRight size={15} /></Link></>}</div>
             </nav>
 
             <section className="relative z-10 mx-auto grid min-h-[760px] max-w-7xl items-center gap-14 px-5 pb-24 pt-12 sm:px-8 lg:grid-cols-[.93fr_1.07fr] lg:pt-8">
