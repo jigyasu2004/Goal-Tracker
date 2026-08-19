@@ -10,9 +10,14 @@
     "build": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "android:add": "cap add android",
+    "android:sync": "cap sync android",
+    "android:build": "npm run android:sync && cd android && ./gradlew assembleDebug",
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
     "@prisma/client": "^5.10.0",
     "bcrypt": "^6.0.0",
     "clsx": "^2.1.1",
@@ -28,6 +33,8 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.0",
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.4",

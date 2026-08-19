@@ -12,6 +12,16 @@
 
 # production
 /build
+/releases/*.apk
+
+# Android / Capacitor
+/android/.gradle/
+/android/.idea/
+/android/captures/
+/android/local.properties
+/android/**/build/
+*.jks
+*.keystore
 
 # misc
 .DS_Store

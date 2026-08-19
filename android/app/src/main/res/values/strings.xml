@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Northstar</string>
+    <string name="title_activity_main">Northstar</string>
+    <string name="package_name">com.jigyasu.northstar</string>
+    <string name="custom_url_scheme">com.jigyasu.northstar</string>
+</resources>

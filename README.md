@@ -14,7 +14,7 @@ Northstar is a full-stack goal and habit tracker built to turn long-term intenti
 - **Momentum Coach** — ask for a practical next step using live goal and progress context, with an automatic local fallback when AI is not configured.
 - **Four persistent themes** — switch between Nebula, Solar Flare, Cyber Mint, and Quantum Rose on each device.
 - **Built-in help center** — see every capability and the recommended plan → act → reflect loop without leaving the app.
-- **Installable Android PWA** — launch Northstar from the home screen with an app-like standalone experience and an offline connection screen.
+- **Native Android wrapper and installable PWA** — use the same Northstar account and live data from an APK or an app-like browser installation.
 - **Notification readiness** — grant device permission and send a test notification from Settings.
 - **Timezone-aware reminders** — optional nightly reminder and completion emails.
 - **Responsive and accessible** — keyboard focus states, reduced-motion support, and layouts for phone through desktop.
@@ -75,11 +75,24 @@ npx next build
 npm audit --omit=dev
 ```
 
-## Android and push notifications
+## Android app
+
+The `android/` project is a Capacitor wrapper around the production Northstar site. It uses the package ID `com.jigyasu.northstar`, blocks cleartext traffic, and shares the same authentication, database, themes, coach, and deployed updates as the web app.
+
+To build an installable development APK, install JDK 21 and Android SDK Platform 36, set `sdk.dir` in `android/local.properties`, then run:
+
+```bash
+npm install
+npm run android:build
+```
+
+The APK is created at `android/app/build/outputs/apk/debug/app-debug.apk`. A Play Store release additionally requires a private signing key and an Android App Bundle (`.aab`). Never commit signing keys.
+
+## PWA and push notifications
 
 Open the production site in Chrome on Android, sign in, then choose **Settings → Android and notifications → Install app**. If Chrome does not show the native prompt, use its menu and choose **Add to Home screen**.
 
-The included service worker, manifest, notification permission flow, test signal, and push event handler prepare the app for Android use. Reliable scheduled notifications while the app is closed still need a push delivery backend. The recommended next step is either:
+The included service worker, manifest, notification permission flow, test signal, and push event handler prepare the PWA for Android use. Reliable scheduled notifications while the PWA or native app is closed still need a push delivery backend. The recommended next step is either:
 
 - Firebase Cloud Messaging, using a Firebase project and web-app configuration; or
 - standards-based Web Push, using VAPID public/private keys and a database table for device subscriptions.

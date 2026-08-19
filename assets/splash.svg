@@ -1,0 +1,24 @@
+<svg width="2732" height="2732" viewBox="0 0 2732 2732" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="topGlow" cx="0" cy="0" r="1" gradientTransform="translate(1366 870) rotate(90) scale(1090)">
+      <stop stop-color="#4C1D95"/>
+      <stop offset="0.52" stop-color="#172554" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#060915" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mark" x1="1048" y1="1028" x2="1692" y2="1692" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <rect width="2732" height="2732" fill="#060915"/>
+  <rect width="2732" height="2732" fill="url(#topGlow)"/>
+  <circle cx="1366" cy="1225" r="430" stroke="#8B5CF6" stroke-opacity="0.12" stroke-width="4"/>
+  <circle cx="1366" cy="1225" r="330" stroke="#22D3EE" stroke-opacity="0.12" stroke-width="4"/>
+  <rect x="1050" y="909" width="632" height="632" rx="150" fill="url(#mark)"/>
+  <circle cx="1366" cy="1225" r="166" fill="#070B1C" fill-opacity="0.34" stroke="white" stroke-opacity="0.24" stroke-width="14"/>
+  <circle cx="1366" cy="1225" r="116" stroke="white" stroke-width="24"/>
+  <path d="M1296 1227L1342 1273L1441 1164" stroke="white" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1495" cy="1092" r="15" fill="#67E8F9"/>
+  <text x="1366" y="1747" fill="white" font-family="Inter, Arial, sans-serif" font-size="132" font-weight="700" letter-spacing="8" text-anchor="middle">NORTHSTAR</text>
+  <text x="1366" y="1840" fill="#A5B4FC" font-family="Inter, Arial, sans-serif" font-size="46" font-weight="500" letter-spacing="5" text-anchor="middle">TURN INTENTION INTO MOMENTUM</text>
+</svg>
