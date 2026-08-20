@@ -13,6 +13,7 @@
     "android:add": "cap add android",
     "android:sync": "cap sync android",
     "android:build": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "android:build:release": "npm run android:sync && cd android && ./gradlew assembleRelease",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -8,6 +8,7 @@ import { ArrowLeft, BellRing, Check, Clock3, Download, Palette, ShieldCheck, Sma
 import Navbar from "@/components/Navbar";
 import { useTheme } from "@/components/ThemeProvider";
 import { usePwa } from "@/components/PwaProvider";
+import { ANDROID_DOWNLOAD_URL, ANDROID_VERSION } from "@/lib/releases";
 
 export default function SettingsPage() {
     const { data: session, status } = useSession();
@@ -76,10 +77,11 @@ export default function SettingsPage() {
 
                     <section className="glass-panel rounded-[26px] p-6 md:col-span-2">
                         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-                            <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--accent-2)]/20 bg-white/[0.04] text-[var(--accent-2)]"><Smartphone size={20} /></span><div><h2 className="text-sm font-bold text-[#e2e7f5]">Android and notifications</h2><p className="text-[11px] text-[#626c87]">Install the PWA and prepare this device for reminders</p></div></div>
-                            <span className="rounded-full border border-white/[0.08] bg-white/[0.035] px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-white/45">{isInstalled ? "App installed" : "Web app ready"}</span>
+                            <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--accent-2)]/20 bg-white/[0.04] text-[var(--accent-2)]"><Smartphone size={20} /></span><div><h2 className="text-sm font-bold text-[#e2e7f5]">Android app and notifications</h2><p className="text-[11px] text-[#626c87]">Download the native app or install the browser version</p></div></div>
+                            <span className="rounded-full border border-white/[0.08] bg-white/[0.035] px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-white/45">APK v{ANDROID_VERSION}</span>
                         </div>
-                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            <article className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent-soft)] p-4"><Smartphone size={17} className="text-[var(--accent)]" /><h3 className="mt-3 text-xs font-bold text-white">Native Android APK</h3><p className="mt-1 text-[10px] leading-5 text-white/40">Install the official release with the same Northstar account and live goal data.</p><a href={ANDROID_DOWNLOAD_URL} className="primary-button mt-4 h-9 px-3 text-xs"><Download size={14} /> Download APK</a></article>
                             <article className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4"><Download size={17} className="text-[var(--accent)]" /><h3 className="mt-3 text-xs font-bold text-white">Home-screen access</h3><p className="mt-1 text-[10px] leading-5 text-white/35">Launch Northstar full-screen from Android without opening a browser tab first.</p><button type="button" onClick={handleInstall} disabled={isInstalled} className="soft-button mt-4 h-9 px-3 text-xs"><Download size={14} /> {isInstalled ? "Installed" : canInstall ? "Install app" : "Installation guide"}</button></article>
                             <article className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4"><BellRing size={17} className="text-[var(--accent-2)]" /><h3 className="mt-3 text-xs font-bold text-white">Device signals</h3><p className="mt-1 text-[10px] leading-5 text-white/35">Grant notification permission and verify that Northstar can reach this device.</p><button type="button" onClick={handleNotifications} disabled={notificationState === "granted" || notificationState === "unsupported"} className="soft-button mt-4 h-9 px-3 text-xs"><BellRing size={14} /> {notificationState === "granted" ? "Enabled" : notificationState === "denied" ? "Blocked" : "Enable & test"}</button></article>
                         </div>

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Activity, ArrowRight, BarChart3, BrainCircuit, CalendarDays, Check, ChevronRight, CircleDot, Flame, Orbit, Sparkles, Target, Zap } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, BrainCircuit, CalendarDays, Check, CircleDot, Download, Flame, Orbit, Smartphone, Sparkles, Target, Zap } from "lucide-react";
 import HelpCenter from "@/components/HelpCenter";
 import ThemeMenu from "@/components/ThemeMenu";
+import { ANDROID_DOWNLOAD_URL, ANDROID_VERSION } from "@/lib/releases";
 
 const PREVIEW_GOALS = [
     { label: "Deep work protocol", done: true, type: "FOCUS" },
@@ -25,7 +26,7 @@ export default function Home() {
                     <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-[#78e6df]/25 bg-gradient-to-br from-[#143d58] via-[#283d7a] to-[#4d2d84] text-[#9afff6] shadow-[0_0_30px_rgba(72,127,218,.25)]"><Orbit size={21} className="transition duration-700 group-hover:rotate-180" /><span className="absolute inset-[3px] rounded-lg border border-white/[0.08]" /></span>
                     <span className="font-display text-lg font-extrabold tracking-tight text-white">Northstar</span><span className="rounded-md border border-[#5eead4]/15 bg-[#5eead4]/[0.06] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.16em] text-[#77e8df]">OS</span>
                 </Link>
-                <div className="hidden items-center gap-8 text-[11px] font-semibold text-[#737d99] md:flex"><a href="#system" className="transition hover:text-[#8ff8ef]">The system</a><a href="#features" className="transition hover:text-[#8ff8ef]">Capabilities</a><span className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.15em] text-[#57617d]"><span className="status-dot" /> Online</span></div>
+                <div className="hidden items-center gap-8 text-[11px] font-semibold text-[#737d99] md:flex"><a href="#system" className="transition hover:text-[#8ff8ef]">The system</a><a href="#features" className="transition hover:text-[#8ff8ef]">Capabilities</a><a href="#android" className="transition hover:text-[#8ff8ef]">Android app</a><span className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.15em] text-[#57617d]"><span className="status-dot" /> Online</span></div>
                 <div className="flex items-center gap-2"><ThemeMenu /><HelpCenter />{status === "authenticated" ? <Link href="/dashboard" className="primary-button py-2.5">Enter workspace <ArrowRight size={15} /></Link> : <><Link href="/login" className="hidden rounded-xl px-4 py-2 text-xs font-bold text-[#929bb6] transition hover:bg-white/[0.04] hover:text-white sm:block">Sign in</Link><Link href="/register" className="primary-button py-2.5"><span className="hidden sm:inline">Initialize</span><span className="sm:hidden">Start</span> <ArrowRight size={15} /></Link></>}</div>
             </nav>
 
@@ -34,7 +35,7 @@ export default function Home() {
                     <div className="eyebrow mb-6 rounded-full border border-[#5eead4]/15 bg-[#5eead4]/[0.045] px-3.5 py-2"><Sparkles size={12} /> Personal evolution system <span className="h-3 w-px bg-white/10" /> v2.0</div>
                     <h1 className="font-display text-5xl font-extrabold leading-[1.01] tracking-[-0.06em] text-white sm:text-6xl lg:text-[72px]">Build the future<br />you keep <span className="gradient-text">imagining.</span></h1>
                     <p className="mt-7 max-w-lg text-base leading-7 text-[#8992ae] sm:text-lg">A calm command center for goals, habits, and reflection. Transform distant ambition into a system you can execute today.</p>
-                    <div className="mt-9 flex flex-wrap gap-3">{status === "authenticated" ? <Link href="/dashboard" className="primary-button px-6 py-3.5">Resume your trajectory <ArrowRight size={16} /></Link> : <><Link href="/register" className="primary-button px-6 py-3.5">Launch your system <ArrowRight size={16} /></Link><a href="#system" className="soft-button h-auto px-6 py-3.5">Explore protocol <ChevronRight size={15} /></a></>}</div>
+                    <div className="mt-9 flex flex-wrap gap-3">{status === "authenticated" ? <Link href="/dashboard" className="primary-button px-6 py-3.5">Resume your trajectory <ArrowRight size={16} /></Link> : <Link href="/register" className="primary-button px-6 py-3.5">Launch your system <ArrowRight size={16} /></Link>}<a href={ANDROID_DOWNLOAD_URL} className="soft-button h-auto px-6 py-3.5"><Download size={15} /> Download Android app</a></div>
                     <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[#535d79]"><span className="flex items-center gap-1.5"><Check size={12} className="text-[#5eead4]" /> Adaptive habits</span><span className="flex items-center gap-1.5"><Check size={12} className="text-[#5eead4]" /> Visual momentum</span><span className="flex items-center gap-1.5"><Check size={12} className="text-[#5eead4]" /> Private by design</span></div>
                 </div>
 
@@ -55,6 +56,17 @@ export default function Home() {
                 </div>
             </section>
 
+            <section id="android" className="relative z-10 px-5 pb-24 sm:px-8">
+                <div className="glass-panel mx-auto grid max-w-6xl items-center gap-8 overflow-hidden rounded-[30px] p-7 sm:p-10 lg:grid-cols-[1fr_auto]">
+                    <div className="pointer-events-none absolute -left-16 h-52 w-52 rounded-full bg-[#5eead4]/10 blur-[80px]" />
+                    <div className="relative flex items-start gap-5">
+                        <span className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl border border-[#5eead4]/20 bg-gradient-to-br from-[#12606b]/50 to-[#574092]/45 text-[#8df7ef] shadow-[0_0_28px_rgba(94,234,212,.1)]"><Smartphone size={25} /></span>
+                        <div><span className="eyebrow">Native Android release</span><h2 className="gradient-text mt-3 font-display text-2xl font-bold tracking-[-0.04em] sm:text-3xl">Northstar in your pocket.</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[#747d98]">Install the official APK for fast home-screen access while keeping the same account, goals, themes, and Momentum Coach as the web app.</p><div className="mt-4 flex flex-wrap gap-3 text-[9px] font-bold uppercase tracking-[0.12em] text-[#59637e]"><span>Version {ANDROID_VERSION}</span><span>Android 7.0+</span><span>Secure release signature</span></div></div>
+                    </div>
+                    <a href={ANDROID_DOWNLOAD_URL} className="primary-button relative flex-none px-7 py-3.5"><Download size={16} /> Download APK</a>
+                </div>
+            </section>
+
             <section id="system" className="relative z-10 border-y border-white/[0.07] bg-[#080a16]/70 px-5 py-24 backdrop-blur sm:px-8">
                 <div className="mx-auto max-w-6xl"><div className="mx-auto max-w-2xl text-center"><span className="eyebrow"><BrainCircuit size={13} /> The execution protocol</span><h2 className="gradient-text mt-4 font-display text-3xl font-bold tracking-[-0.04em] sm:text-5xl">A closed loop for becoming.</h2><p className="mt-4 text-sm leading-6 text-[#78819d]">Northstar turns planning, action, and reflection into a self-correcting system that gets smarter every week.</p></div><div className="relative mt-14 grid gap-4 md:grid-cols-3"><div className="pointer-events-none absolute left-[16%] right-[16%] top-8 hidden h-px bg-gradient-to-r from-[#5eead4]/10 via-[#8b77ed]/40 to-[#5eead4]/10 md:block" />{[{icon:Target,title:"Set coordinates",text:"Convert distant ambition into one concrete action for today."},{icon:Zap,title:"Execute the signal",text:"Check in instantly and watch momentum propagate across time."},{icon:BrainCircuit,title:"Evolve the system",text:"Reflect on friction, learn the pattern, and adapt your next move."}].map(({icon:Icon,title,text},index) => <article key={title} className="glass-panel relative rounded-[24px] p-6 transition hover:-translate-y-1 hover:border-[#7fe8e1]/20"><span className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#5eead4]/15 bg-gradient-to-br from-[#12606b]/40 to-[#574092]/35 text-[#8df7ef] shadow-[0_0_25px_rgba(94,234,212,.08)]"><Icon size={20} /></span><small className="text-[8px] font-extrabold tracking-[0.2em] text-[#4d5670]">PROTOCOL / 0{index + 1}</small><h3 className="mt-2 font-display text-xl font-bold text-[#edf1ff]">{title}</h3><p className="mt-2 text-xs leading-5 text-[#6d7692]">{text}</p></article>)}</div></div>
             </section>
@@ -63,7 +75,7 @@ export default function Home() {
 
             <section className="relative z-10 px-5 pb-24 sm:px-8"><div className="glass-panel mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 overflow-hidden rounded-[30px] p-8 sm:p-12 lg:flex-row"><div className="absolute h-52 w-52 rounded-full bg-[#4a32bb]/15 blur-[80px]" /><div className="relative"><span className="eyebrow">Your future is waiting</span><h2 className="gradient-text mt-3 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl">Initialize the next version of you.</h2></div><Link href={status === "authenticated" ? "/dashboard" : "/register"} className="primary-button relative flex-none px-7 py-3.5">{status === "authenticated" ? "Open workspace" : "Launch Northstar"} <ArrowRight size={16} /></Link></div></section>
 
-            <footer className="relative z-10 border-t border-white/[0.07] px-5 py-8 sm:px-8"><div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row"><div className="flex items-center gap-2 text-sm font-extrabold text-white"><Orbit size={17} className="text-[#75eee5]" /> Northstar <span className="text-[7px] uppercase tracking-widest text-[#4d5670]">OS</span></div><p className="text-[10px] uppercase tracking-[0.12em] text-[#475069]">Direction / Momentum / Evolution</p></div></footer>
+            <footer className="relative z-10 border-t border-white/[0.07] px-5 py-8 sm:px-8"><div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row"><div className="flex items-center gap-2 text-sm font-extrabold text-white"><Orbit size={17} className="text-[#75eee5]" /> Northstar <span className="text-[7px] uppercase tracking-widest text-[#4d5670]">OS</span></div><div className="flex items-center gap-5"><a href={ANDROID_DOWNLOAD_URL} className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#71809f] transition hover:text-[#8ff8ef]"><Download size={12} /> Android APK</a><p className="text-[10px] uppercase tracking-[0.12em] text-[#475069]">Direction / Momentum / Evolution</p></div></div></footer>
         </main>
     );
 }

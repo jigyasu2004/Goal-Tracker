@@ -1,14 +1,34 @@
 apply plugin: 'com.android.application'
 
+def northstarKeystoreFile = System.getenv('NORTHSTAR_KEYSTORE_FILE')
+def northstarKeystorePassword = System.getenv('NORTHSTAR_KEYSTORE_PASSWORD')
+def northstarKeyPassword = System.getenv('NORTHSTAR_KEY_PASSWORD')
+def hasReleaseSigning = northstarKeystoreFile && northstarKeystorePassword && northstarKeyPassword
+def isReleaseBuild = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+
+if (isReleaseBuild && !hasReleaseSigning) {
+    throw new GradleException('Release signing requires NORTHSTAR_KEYSTORE_FILE, NORTHSTAR_KEYSTORE_PASSWORD, and NORTHSTAR_KEY_PASSWORD.')
+}
+
 android {
     namespace = "com.jigyasu.northstar"
     compileSdk = rootProject.ext.compileSdkVersion
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(northstarKeystoreFile)
+                storePassword northstarKeystorePassword
+                keyAlias 'northstar'
+                keyPassword northstarKeyPassword
+            }
+        }
+    }
     defaultConfig {
         applicationId "com.jigyasu.northstar"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -18,6 +38,9 @@ android {
     }
     buildTypes {
         release {
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

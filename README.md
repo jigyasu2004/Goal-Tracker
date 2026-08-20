@@ -4,6 +4,8 @@ Northstar is a full-stack goal and habit tracker built to turn long-term intenti
 
 **Live demo:** [goal-tracker-cyan.vercel.app](https://goal-tracker-cyan.vercel.app/)
 
+**Android app:** [Download the latest APK](https://github.com/jigyasu2004/Goal-Tracker/releases/latest/download/Northstar-1.0.0.apk)
+
 ## Features
 
 - **Daily compass** — opens on today and surfaces the next incomplete action.
@@ -86,7 +88,18 @@ npm install
 npm run android:build
 ```
 
-The APK is created at `android/app/build/outputs/apk/debug/app-debug.apk`. A Play Store release additionally requires a private signing key and an Android App Bundle (`.aab`). Never commit signing keys.
+The APK is created at `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+Public releases must use the same private signing key so Android can install future updates over earlier versions. Configure the release key outside the repository, then build with:
+
+```bash
+export NORTHSTAR_KEYSTORE_FILE="/secure/path/northstar-release.jks"
+export NORTHSTAR_KEYSTORE_PASSWORD="your-keystore-password"
+export NORTHSTAR_KEY_PASSWORD="your-key-password"
+npm run android:build:release
+```
+
+The signed APK is created at `android/app/build/outputs/apk/release/app-release.apk`. Never commit signing keys or passwords. A Play Store release additionally requires an Android App Bundle (`.aab`).
 
 ## PWA and push notifications
 
